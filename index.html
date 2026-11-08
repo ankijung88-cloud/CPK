@@ -6,29 +6,42 @@
   <meta name="theme-color" content="#1e293b" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  <meta name="apple-mobile-web-app-title" content="코드찾기" />
-  <title>3CODE & SLIC 정보찾기</title>
-  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%231e293b'/><text x='50' y='44' font-family='sans-serif' font-size='26' font-weight='bold' fill='%2338bdf8' text-anchor='middle'>3CODE</text><text x='50' y='74' font-family='sans-serif' font-size='22' font-weight='bold' fill='%23ffffff' text-anchor='middle'>SLIC</text></svg>" />
+  <meta name="apple-mobile-web-app-title" content="CPK 코드·ULD" />
+  <title>CPK 3CODE · SLIC & ULD 컨테이너</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%231e293b'/><text x='50' y='44' font-family='sans-serif' font-size='26' font-weight='bold' fill='%2338bdf8' text-anchor='middle'>3CODE</text><text x='50' y='74' font-family='sans-serif' font-size='22' font-weight='bold' fill='%23ffffff' text-anchor='middle'>ULD</text></svg>" />
   <link rel="manifest" href="./manifest.json" />
   <link rel="stylesheet" href="./styles.css" />
 </head>
 <body>
   <div class="app-container">
-    <!-- 상단 고정 검색 및 지역 탭 -->
+    <!-- 상단 고정 헤더, 모드 전환, 검색 및 필터 탭 -->
     <header class="sticky-top">
       <div class="top-bar">
         <h1 class="app-title">
-          <span>3CODE · SLIC 조회</span>
+          <span>CPK 현장 정보찾기</span>
           <span class="app-title-badge">MOBILE</span>
         </h1>
         <div class="top-actions">
+          <button type="button" class="icon-btn" id="typeDictBtn" style="display: none;" title="박스 타입별 현장명칭 관리">
+            🏷️ 타입별 현장명칭
+          </button>
           <button type="button" class="icon-btn" id="resetDataBtn" title="초기 데이터로 복원">
             초기화
           </button>
         </div>
       </div>
 
-      <!-- 실시간 통합 검색바 (3CODE, SLIC, 목적지, 초성 지원) -->
+      <!-- 메인 모드 전환 탭 (목적지 코드 조회 vs ULD 컨테이너 관리) -->
+      <div class="mode-switch" id="modeSwitch">
+        <button type="button" class="mode-btn active" data-mode="CODE">
+          ✈️ 목적지 코드 (3CODE·SLIC)
+        </button>
+        <button type="button" class="mode-btn" data-mode="ULD">
+          📦 ULD 컨테이너 (현장명칭)
+        </button>
+      </div>
+
+      <!-- 실시간 통합 검색바 -->
       <div class="search-wrapper">
         <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
           <circle cx="11" cy="11" r="8"></circle>
@@ -45,7 +58,7 @@
         <button type="button" id="clearSearchBtn" class="clear-btn" aria-label="검색어 지우기">✕</button>
       </div>
 
-      <!-- 지역별 필터 탭 (전체 / ASIA / EUR / US) -->
+      <!-- [모드 1] 지역별 필터 탭 (전체 / ASIA / EUR / US) -->
       <nav class="region-tabs" id="regionTabs" aria-label="지역별 필터">
         <button type="button" class="tab-btn active" data-region="ALL">
           전체 <span class="count" id="count-ALL">45</span>
@@ -60,32 +73,45 @@
           US <span class="count" id="count-US">15</span>
         </button>
       </nav>
+
+      <!-- [모드 2] ULD 박스 타입별 필터 탭 (동적 렌더링) -->
+      <nav class="uld-type-tabs" id="uldTypeTabs" style="display: none;" aria-label="박스 타입별 필터"></nav>
     </header>
 
     <!-- 상태 안내 바 -->
     <div class="status-bar">
       <span id="statusText">전체 지역 · 검색결과 45건</span>
-      <span class="status-hint">항목을 누르면 수정/삭제 가능</span>
+      <span class="status-hint" id="statusHint">항목을 누르면 수정/삭제 가능</span>
     </div>
 
-    <!-- 컬럼 헤더 -->
-    <div class="list-header">
+    <!-- [모드 1] 목적지 코드 컬럼 헤더 -->
+    <div class="list-header" id="codeListHeader">
       <div>3CODE</div>
       <div>SLIC</div>
       <div>DEST (목적지)</div>
       <div></div>
     </div>
 
-    <!-- 검색 결과 리스트 -->
+    <!-- 검색 결과 리스트 (목적지 코드 & ULD 컨테이너 공용 영역) -->
     <main class="results-list" id="resultsList"></main>
 
-    <!-- 플로팅 코드 추가 버튼 -->
-    <button type="button" class="fab-add" id="fabAddBtn">
-      <span>＋ 코드 추가</span>
-    </button>
+    <!-- 플로팅 액션 버튼 영역 -->
+    <div class="fab-group">
+      <!-- ULD 전용: 카메라 즉시 촬영 버튼 -->
+      <button type="button" class="fab-camera" id="fabCameraBtn" style="display: none;">
+        <span>📷 사진 찍어 등록</span>
+      </button>
+      <!-- 추가 버튼 -->
+      <button type="button" class="fab-add" id="fabAddBtn">
+        <span id="fabAddText">＋ 코드 추가</span>
+      </button>
+    </div>
+
+    <!-- 카메라 직접 호출용 숨김 파일 입력 -->
+    <input type="file" id="quickCameraInput" accept="image/*" capture="environment" style="display: none;" />
   </div>
 
-  <!-- 데이터 추가 / 수정 / 삭제 모달 (바텀 시트) -->
+  <!-- [모달 1] 3CODE · SLIC 데이터 추가 / 수정 / 삭제 모달 -->
   <div class="modal-backdrop" id="itemModal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
     <div class="modal-sheet">
       <div class="modal-header">
@@ -155,10 +181,154 @@
     </div>
   </div>
 
+  <!-- [모달 2] ULD 컨테이너 및 현장사용명칭 추가 / 사진촬영 / 수정 / 삭제 모달 -->
+  <div class="modal-backdrop" id="uldModal" role="dialog" aria-modal="true" aria-labelledby="uldModalTitle">
+    <div class="modal-sheet modal-sheet-scroll">
+      <div class="modal-header">
+        <h2 class="modal-title" id="uldModalTitle">ULD 컨테이너 등록</h2>
+        <button type="button" class="modal-close" id="closeUldModalBtn" aria-label="닫기">✕</button>
+      </div>
+
+      <form id="uldForm">
+        <!-- 사진 촬영 및 미리보기 영역 -->
+        <div class="form-group">
+          <label class="form-label">컨테이너 사진 (카메라 촬영 또는 앨범 선택)</label>
+          <div class="photo-upload-box" id="photoUploadBox">
+            <img id="uldPhotoPreview" class="uld-photo-preview" alt="컨테이너 사진 미리보기" style="display: none;" />
+            <div id="photoPlaceholder" class="photo-placeholder">
+              <div class="photo-placeholder-icon">📷</div>
+              <div class="photo-placeholder-text">컨테이너 명칭 사진을 찍거나 선택하세요</div>
+            </div>
+          </div>
+
+          <div class="photo-btn-row">
+            <label class="btn-photo-action">
+              📷 카메라 촬영
+              <input type="file" id="uldCameraInput" accept="image/*" capture="environment" style="display: none;" />
+            </label>
+            <label class="btn-photo-action">
+              🖼️ 앨범에서 선택
+              <input type="file" id="uldGalleryInput" accept="image/*" style="display: none;" />
+            </label>
+            <button type="button" class="btn-photo-remove" id="removePhotoBtn" style="display: none;">
+              사진 삭제
+            </button>
+          </div>
+          <div id="ocrStatusText" class="ocr-status-text" style="display: none;"></div>
+        </div>
+
+        <!-- 컨테이너 전체 명칭 -->
+        <div class="form-group">
+          <label class="form-label" for="uldFullNameInput">
+            ULD 컨테이너 명칭 <span class="label-sub">(예: AMP 27945 UPS/5X)</span>
+          </label>
+          <input
+            type="text"
+            id="uldFullNameInput"
+            class="form-input uppercase"
+            placeholder="예: AMP 27945 UPS/5X"
+            required
+          />
+        </div>
+
+        <!-- 박스 타입 (예: AMP) & 현장사용명칭 -->
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label" for="uldTypeInput">
+              박스 타입 코드 <span class="label-sub">(자동추출)</span>
+            </label>
+            <input
+              type="text"
+              id="uldTypeInput"
+              class="form-input uppercase"
+              placeholder="예: AMP"
+              maxlength="6"
+              required
+            />
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="uldFieldNameInput">
+              현장사용명칭 <span class="label-highlight">(필수·핵심)</span>
+            </label>
+            <input
+              type="text"
+              id="uldFieldNameInput"
+              class="form-input input-highlight"
+              placeholder="현장에서 부르는 명칭 입력"
+              required
+            />
+          </div>
+        </div>
+
+        <p class="field-sync-notice">
+          💡 <strong>박스 타입(예: AMP)</strong>의 현장사용명칭을 입력해 저장하면, 동일한 박스 타입의 컨테이너들에 현장사용명칭이 함께 연동되어 표시됩니다.
+        </p>
+
+        <!-- 메모 (선택) -->
+        <div class="form-group">
+          <label class="form-label" for="uldNoteInput">비고 / 메모 (선택)</label>
+          <input
+            type="text"
+            id="uldNoteInput"
+            class="form-input"
+            placeholder="예: 파손 주의, 2층 적재용 등"
+          />
+        </div>
+
+        <div class="modal-actions">
+          <button type="button" class="btn-delete" id="deleteUldBtn" style="display: none;">삭제</button>
+          <button type="submit" class="btn-save">저장하기</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- [모달 3] 박스 타입별 현장사용명칭 일괄 관리 모달 -->
+  <div class="modal-backdrop" id="typeDictModal" role="dialog" aria-modal="true" aria-labelledby="typeDictModalTitle">
+    <div class="modal-sheet modal-sheet-scroll">
+      <div class="modal-header">
+        <h2 class="modal-title" id="typeDictModalTitle">🏷️ 박스 타입별 현장사용명칭 관리</h2>
+        <button type="button" class="modal-close" id="closeTypeDictModalBtn" aria-label="닫기">✕</button>
+      </div>
+      <p class="dict-guide">
+        박스 앞글자 타입(예: <strong>AMP</strong>, <strong>AKE</strong>, <strong>AAY</strong> 등)별로 현장에서 사용하는 명칭을 등록·수정하면 모든 컨테이너에 즉시 반영됩니다.
+      </p>
+
+      <form id="addTypeMappingForm" class="dict-add-row">
+        <input
+          type="text"
+          id="newTypeCodeInput"
+          class="form-input uppercase dict-code-input"
+          placeholder="타입 (예: AMP)"
+          maxlength="6"
+          required
+        />
+        <input
+          type="text"
+          id="newTypeFieldNameInput"
+          class="form-input dict-name-input"
+          placeholder="현장사용명칭 입력"
+          required
+        />
+        <button type="submit" class="btn-dict-add">저장</button>
+      </form>
+
+      <div id="typeDictList" class="type-dict-list"></div>
+    </div>
+  </div>
+
+  <!-- [모달 4] 사진 원본 크게 보기 라이트박스 -->
+  <div class="modal-backdrop photo-lightbox" id="photoLightbox">
+    <div class="lightbox-inner">
+      <button type="button" class="lightbox-close" id="closeLightboxBtn">✕ 닫기</button>
+      <img id="lightboxImg" src="" alt="컨테이너 확대 사진" />
+      <div id="lightboxCaption" class="lightbox-caption"></div>
+    </div>
+  </div>
+
   <!-- 토스트 알림 -->
   <div class="toast" id="toast"></div>
 
   <script src="./app.js"></script>
 </body>
 </html>
-

@@ -1,4 +1,4 @@
-const CACHE_NAME = 'cpk-lookup-v1';
+const CACHE_NAME = 'cpk-lookup-v2';
 const ASSETS = [
   './',
   './index.html',
@@ -27,7 +27,6 @@ self.addEventListener('activate', (event) => {
 
 self.addEventListener('fetch', (event) => {
   event.respondWith(
-    caches.match(event.request).then((cached) => cached || fetch(event.request))
+    fetch(event.request).catch(() => caches.match(event.request))
   );
 });
-

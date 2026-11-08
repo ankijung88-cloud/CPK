@@ -34,7 +34,7 @@ body {
   background-color: var(--bg);
   color: var(--text-primary);
   line-height: 1.4;
-  padding-bottom: 90px;
+  padding-bottom: 100px;
 }
 
 .app-container {
@@ -52,7 +52,7 @@ body {
   z-index: 30;
   background: var(--header-bg);
   color: #fff;
-  padding: 14px 16px 12px;
+  padding: 12px 14px 12px;
   box-shadow: 0 4px 14px rgba(15, 23, 42, 0.18);
 }
 
@@ -60,24 +60,24 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 12px;
+  margin-bottom: 10px;
 }
 
 .app-title {
-  font-size: 1.15rem;
+  font-size: 1.1rem;
   font-weight: 800;
   letter-spacing: -0.02em;
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 7px;
 }
 
 .app-title-badge {
   background: #38bdf8;
   color: #0f172a;
-  font-size: 0.72rem;
+  font-size: 0.7rem;
   font-weight: 800;
-  padding: 2px 7px;
+  padding: 2px 6px;
   border-radius: 6px;
 }
 
@@ -88,12 +88,12 @@ body {
 
 .icon-btn {
   background: rgba(255, 255, 255, 0.12);
-  border: 1px solid rgba(255, 255, 255, 0.16);
+  border: 1px solid rgba(255, 255, 255, 0.18);
   color: #f8fafc;
   border-radius: 8px;
   padding: 6px 10px;
-  font-size: 0.78rem;
-  font-weight: 600;
+  font-size: 0.76rem;
+  font-weight: 700;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
@@ -103,6 +103,35 @@ body {
 
 .icon-btn:active {
   background: rgba(255, 255, 255, 0.24);
+}
+
+/* Main Mode Switcher */
+.mode-switch {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  background: rgba(15, 23, 42, 0.45);
+  padding: 4px;
+  border-radius: 12px;
+  margin-bottom: 10px;
+}
+
+.mode-btn {
+  background: transparent;
+  border: none;
+  color: #94a3b8;
+  padding: 9px 6px;
+  border-radius: 9px;
+  font-size: 0.84rem;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.mode-btn.active {
+  background: #ffffff;
+  color: #0f172a;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
 }
 
 /* Search Box */
@@ -123,9 +152,9 @@ body {
 
 .search-input {
   width: 100%;
-  height: 46px;
+  height: 45px;
   padding: 0 42px 0 40px;
-  font-size: 1rem;
+  font-size: 0.96rem;
   font-weight: 500;
   border: 2px solid transparent;
   border-radius: 12px;
@@ -142,7 +171,7 @@ body {
 
 .search-input::placeholder {
   color: #94a3b8;
-  font-size: 0.9rem;
+  font-size: 0.86rem;
   font-weight: 400;
 }
 
@@ -175,19 +204,33 @@ body {
   margin-top: 10px;
 }
 
+.uld-type-tabs {
+  display: flex;
+  gap: 6px;
+  margin-top: 10px;
+  overflow-x: auto;
+  padding-bottom: 2px;
+  scrollbar-width: none;
+}
+
+.uld-type-tabs::-webkit-scrollbar {
+  display: none;
+}
+
 .tab-btn {
   background: rgba(255, 255, 255, 0.1);
   border: 1px solid rgba(255, 255, 255, 0.12);
   color: #cbd5e1;
-  padding: 8px 4px;
+  padding: 8px 10px;
   border-radius: 10px;
-  font-size: 0.84rem;
+  font-size: 0.82rem;
   font-weight: 700;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 5px;
+  white-space: nowrap;
   transition: all 0.15s;
 }
 
@@ -224,7 +267,7 @@ body {
 
 .status-hint {
   color: var(--text-muted);
-  font-size: 0.76rem;
+  font-size: 0.75rem;
 }
 
 /* Table Header Bar */
@@ -247,9 +290,10 @@ body {
   padding: 0 12px;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 9px;
 }
 
+/* 3CODE Item Card */
 .item-card {
   background: var(--surface);
   border: 1px solid var(--border);
@@ -348,8 +392,8 @@ body {
 }
 
 .edit-btn {
-  width: 30px;
-  height: 30px;
+  width: 32px;
+  height: 32px;
   border-radius: 8px;
   border: none;
   background: #f1f5f9;
@@ -365,6 +409,146 @@ body {
   color: #0f172a;
 }
 
+/* ==========================================
+   ULD 컨테이너 카드 스타일
+   ========================================== */
+.uld-card {
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  border-radius: 14px;
+  padding: 13px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  box-shadow: var(--shadow-sm);
+  cursor: pointer;
+  transition: transform 0.1s, border-color 0.15s;
+}
+
+.uld-card:active {
+  transform: scale(0.99);
+  border-color: #64748b;
+}
+
+.uld-thumb-wrap {
+  width: 82px;
+  height: 68px;
+  border-radius: 10px;
+  overflow: hidden;
+  background: #f1f5f9;
+  border: 1px solid #cbd5e1;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.uld-thumb-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.uld-thumb-zoom {
+  position: absolute;
+  right: 3px;
+  bottom: 3px;
+  background: rgba(15, 23, 42, 0.72);
+  color: #fff;
+  font-size: 0.62rem;
+  padding: 1px 4px;
+  border-radius: 4px;
+}
+
+.uld-thumb-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: #64748b;
+  font-size: 0.68rem;
+  font-weight: 700;
+  gap: 2px;
+}
+
+.uld-thumb-empty span.icon {
+  font-size: 1.25rem;
+}
+
+.uld-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.uld-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+}
+
+.uld-full-name {
+  font-family: "SF Mono", "Roboto Mono", Consolas, monospace;
+  font-size: 1.08rem;
+  font-weight: 900;
+  color: #0f172a;
+  letter-spacing: 0.02em;
+  word-break: break-all;
+}
+
+/* 박스 타입 & 현장사용명칭 비교 배지 영역 */
+.uld-mapping-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+
+.uld-type-badge {
+  background: #e2e8f0;
+  color: #1e293b;
+  font-size: 0.78rem;
+  font-weight: 800;
+  padding: 4px 8px;
+  border-radius: 7px;
+  font-family: "SF Mono", "Roboto Mono", Consolas, monospace;
+}
+
+.uld-arrow {
+  color: #94a3b8;
+  font-size: 0.8rem;
+  font-weight: 800;
+}
+
+.uld-field-badge {
+  background: #eff6ff;
+  border: 1.5px solid #93c5fd;
+  color: #1d4ed8;
+  font-size: 0.9rem;
+  font-weight: 800;
+  padding: 4px 10px;
+  border-radius: 8px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.uld-field-badge.unset {
+  background: #fffbeb;
+  border: 1.5px dashed #f59e0b;
+  color: #b45309;
+  font-size: 0.82rem;
+}
+
+.uld-note {
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+}
+
 /* Search Highlight */
 mark.hl {
   background: #fef08a;
@@ -376,7 +560,7 @@ mark.hl {
 /* Empty State */
 .empty-state {
   text-align: center;
-  padding: 48px 20px;
+  padding: 42px 20px;
   background: var(--surface);
   border-radius: var(--radius);
   border: 1px dashed #cbd5e1;
@@ -407,18 +591,43 @@ mark.hl {
   cursor: pointer;
 }
 
-/* Floating Action Button */
-.fab-add {
+/* Floating Action Buttons */
+.fab-group {
   position: fixed;
-  right: 18px;
-  bottom: 22px;
+  right: 16px;
+  bottom: 20px;
   z-index: 25;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.fab-camera {
+  background: #0f172a;
+  color: #38bdf8;
+  border: 1.5px solid #38bdf8;
+  border-radius: 99px;
+  padding: 13px 16px;
+  font-size: 0.88rem;
+  font-weight: 800;
+  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.32);
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  cursor: pointer;
+}
+
+.fab-camera:active {
+  transform: scale(0.95);
+}
+
+.fab-add {
   background: var(--primary);
   color: #ffffff;
   border: none;
   border-radius: 99px;
-  padding: 14px 20px;
-  font-size: 0.95rem;
+  padding: 14px 18px;
+  font-size: 0.92rem;
   font-weight: 800;
   box-shadow: 0 8px 20px rgba(37, 99, 235, 0.38);
   display: flex;
@@ -459,6 +668,11 @@ mark.hl {
   animation: slideUp 0.2s ease-out;
 }
 
+.modal-sheet-scroll {
+  max-height: 90dvh;
+  overflow-y: auto;
+}
+
 @keyframes slideUp {
   from {
     transform: translateY(100%);
@@ -472,11 +686,11 @@ mark.hl {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 16px;
+  margin-bottom: 14px;
 }
 
 .modal-title {
-  font-size: 1.1rem;
+  font-size: 1.08rem;
   font-weight: 800;
   color: var(--text-primary);
 }
@@ -494,15 +708,26 @@ mark.hl {
 }
 
 .form-group {
-  margin-bottom: 14px;
+  margin-bottom: 13px;
 }
 
 .form-label {
   display: block;
-  font-size: 0.82rem;
+  font-size: 0.8rem;
   font-weight: 700;
   color: var(--text-secondary);
-  margin-bottom: 6px;
+  margin-bottom: 5px;
+}
+
+.label-sub {
+  font-weight: 500;
+  color: var(--text-muted);
+  font-size: 0.74rem;
+}
+
+.label-highlight {
+  color: var(--primary);
+  font-weight: 800;
 }
 
 .region-radio-group {
@@ -543,7 +768,7 @@ mark.hl {
 
 .form-row {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 115px 1fr;
   gap: 10px;
 }
 
@@ -551,7 +776,7 @@ mark.hl {
   width: 100%;
   height: 44px;
   padding: 0 12px;
-  font-size: 0.98rem;
+  font-size: 0.96rem;
   font-weight: 600;
   border: 1.5px solid var(--border);
   border-radius: 10px;
@@ -565,15 +790,114 @@ mark.hl {
   background: #ffffff;
 }
 
+.form-input.input-highlight {
+  border-color: #93c5fd;
+  background: #eff6ff;
+  font-weight: 800;
+}
+
+.form-input.input-highlight:focus {
+  border-color: var(--primary);
+  background: #ffffff;
+}
+
 .form-input.uppercase {
   text-transform: uppercase;
   font-family: "SF Mono", "Roboto Mono", Consolas, monospace;
 }
 
+/* Photo Upload in Modal */
+.photo-upload-box {
+  width: 100%;
+  height: 140px;
+  border: 2px dashed #cbd5e1;
+  border-radius: 12px;
+  background: #f8fafc;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 8px;
+}
+
+.uld-photo-preview {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  background: #0f172a;
+}
+
+.photo-placeholder {
+  text-align: center;
+  color: var(--text-muted);
+  padding: 12px;
+}
+
+.photo-placeholder-icon {
+  font-size: 1.8rem;
+  margin-bottom: 4px;
+}
+
+.photo-placeholder-text {
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
+.photo-btn-row {
+  display: flex;
+  gap: 8px;
+}
+
+.btn-photo-action {
+  flex: 1;
+  background: #f1f5f9;
+  border: 1px solid #cbd5e1;
+  color: #1e293b;
+  border-radius: 9px;
+  padding: 9px 10px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  text-align: center;
+  cursor: pointer;
+}
+
+.btn-photo-action:active {
+  background: #e2e8f0;
+}
+
+.btn-photo-remove {
+  background: var(--danger-bg);
+  border: 1px solid #fecaca;
+  color: var(--danger);
+  border-radius: 9px;
+  padding: 9px 12px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.ocr-status-text {
+  margin-top: 6px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--primary);
+}
+
+.field-sync-notice {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 9px 11px;
+  font-size: 0.76rem;
+  color: var(--text-secondary);
+  margin-bottom: 12px;
+  line-height: 1.45;
+}
+
 .modal-actions {
   display: flex;
   gap: 8px;
-  margin-top: 20px;
+  margin-top: 16px;
 }
 
 .btn-delete {
@@ -602,6 +926,118 @@ mark.hl {
 
 .btn-save:active {
   background: var(--primary-dark);
+}
+
+/* Type Dictionary Modal */
+.dict-guide {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  margin-bottom: 12px;
+}
+
+.dict-add-row {
+  display: grid;
+  grid-template-columns: 105px 1fr 64px;
+  gap: 6px;
+  margin-bottom: 14px;
+}
+
+.btn-dict-add {
+  background: var(--primary);
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  font-size: 0.86rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.type-dict-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 45dvh;
+  overflow-y: auto;
+}
+
+.dict-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #f8fafc;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 10px 12px;
+  gap: 8px;
+}
+
+.dict-item-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+}
+
+.dict-item-input {
+  flex: 1;
+  height: 36px;
+  padding: 0 10px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  font-size: 0.88rem;
+  font-weight: 700;
+}
+
+.dict-item-del {
+  background: var(--danger-bg);
+  color: var(--danger);
+  border: 1px solid #fecaca;
+  border-radius: 8px;
+  padding: 6px 10px;
+  font-size: 0.76rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+/* Photo Lightbox */
+.photo-lightbox {
+  align-items: center;
+  padding: 16px;
+}
+
+.lightbox-inner {
+  max-width: 500px;
+  width: 100%;
+  background: #0f172a;
+  border-radius: 16px;
+  padding: 14px;
+  text-align: center;
+}
+
+.lightbox-close {
+  background: rgba(255, 255, 255, 0.16);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 6px 12px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  margin-bottom: 10px;
+  cursor: pointer;
+}
+
+#lightboxImg {
+  width: 100%;
+  max-height: 70dvh;
+  object-fit: contain;
+  border-radius: 10px;
+}
+
+.lightbox-caption {
+  color: #f8fafc;
+  margin-top: 10px;
+  font-size: 0.95rem;
+  font-weight: 700;
 }
 
 /* Toast Notification */
@@ -646,4 +1082,3 @@ mark.hl {
     font-size: 0.92rem;
   }
 }
-
