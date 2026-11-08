@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="theme-color" content="#1e293b" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="코드찾기" />
+  <title>3CODE & SLIC 정보찾기</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%231e293b'/><text x='50' y='44' font-family='sans-serif' font-size='26' font-weight='bold' fill='%2338bdf8' text-anchor='middle'>3CODE</text><text x='50' y='74' font-family='sans-serif' font-size='22' font-weight='bold' fill='%23ffffff' text-anchor='middle'>SLIC</text></svg>" />
+  <link rel="manifest" href="./manifest.json" />
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+  <div class="app-container">
+    <!-- 상단 고정 검색 및 지역 탭 -->
+    <header class="sticky-top">
+      <div class="top-bar">
+        <h1 class="app-title">
+          <span>3CODE · SLIC 조회</span>
+          <span class="app-title-badge">MOBILE</span>
+        </h1>
+        <div class="top-actions">
+          <button type="button" class="icon-btn" id="resetDataBtn" title="초기 데이터로 복원">
+            초기화
+          </button>
+        </div>
+      </div>
+
+      <!-- 실시간 통합 검색바 (3CODE, SLIC, 목적지, 초성 지원) -->
+      <div class="search-wrapper">
+        <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="11" cy="11" r="8"></circle>
+          <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+        </svg>
+        <input
+          type="search"
+          id="searchInput"
+          class="search-input"
+          placeholder="3CODE, SLIC, 지역명, 초성(예: ㄴㄹㅌ) 검색..."
+          autocomplete="off"
+          autocapitalize="characters"
+        />
+        <button type="button" id="clearSearchBtn" class="clear-btn" aria-label="검색어 지우기">✕</button>
+      </div>
+
+      <!-- 지역별 필터 탭 (전체 / ASIA / EUR / US) -->
+      <nav class="region-tabs" id="regionTabs" aria-label="지역별 필터">
+        <button type="button" class="tab-btn active" data-region="ALL">
+          전체 <span class="count" id="count-ALL">45</span>
+        </button>
+        <button type="button" class="tab-btn" data-region="ASIA">
+          ASIA <span class="count" id="count-ASIA">20</span>
+        </button>
+        <button type="button" class="tab-btn" data-region="EUR">
+          EUR <span class="count" id="count-EUR">10</span>
+        </button>
+        <button type="button" class="tab-btn" data-region="US">
+          US <span class="count" id="count-US">15</span>
+        </button>
+      </nav>
+    </header>
+
+    <!-- 상태 안내 바 -->
+    <div class="status-bar">
+      <span id="statusText">전체 지역 · 검색결과 45건</span>
+      <span class="status-hint">항목을 누르면 수정/삭제 가능</span>
+    </div>
+
+    <!-- 컬럼 헤더 -->
+    <div class="list-header">
+      <div>3CODE</div>
+      <div>SLIC</div>
+      <div>DEST (목적지)</div>
+      <div></div>
+    </div>
+
+    <!-- 검색 결과 리스트 -->
+    <main class="results-list" id="resultsList"></main>
+
+    <!-- 플로팅 코드 추가 버튼 -->
+    <button type="button" class="fab-add" id="fabAddBtn">
+      <span>＋ 코드 추가</span>
+    </button>
+  </div>
+
+  <!-- 데이터 추가 / 수정 / 삭제 모달 (바텀 시트) -->
+  <div class="modal-backdrop" id="itemModal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <div class="modal-sheet">
+      <div class="modal-header">
+        <h2 class="modal-title" id="modalTitle">새 코드 정보 추가</h2>
+        <button type="button" class="modal-close" id="closeModalBtn" aria-label="닫기">✕</button>
+      </div>
+
+      <form id="itemForm">
+        <div class="form-group">
+          <label class="form-label">대륙 / 지역 (REGION)</label>
+          <div class="region-radio-group">
+            <label class="region-option">
+              <input type="radio" name="region" value="ASIA" checked />
+              <span>ASIA</span>
+            </label>
+            <label class="region-option">
+              <input type="radio" name="region" value="EUR" />
+              <span>EUR</span>
+            </label>
+            <label class="region-option">
+              <input type="radio" name="region" value="US" />
+              <span>US</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label" for="codeInput">3CODE (필수)</label>
+            <input
+              type="text"
+              id="codeInput"
+              class="form-input uppercase"
+              placeholder="예: NRT"
+              maxlength="6"
+              required
+            />
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="slicInput">SLIC (선택)</label>
+            <input
+              type="text"
+              id="slicInput"
+              class="form-input uppercase"
+              placeholder="예: 6999JN"
+              maxlength="12"
+            />
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="destInput">DEST / 목적지명 (필수)</label>
+          <input
+            type="text"
+            id="destInput"
+            class="form-input"
+            placeholder="예: 나리타, 독일(프랑크푸르트)"
+            required
+          />
+        </div>
+
+        <div class="modal-actions">
+          <button type="button" class="btn-delete" id="deleteItemBtn" style="display: none;">삭제</button>
+          <button type="submit" class="btn-save">저장하기</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- 토스트 알림 -->
+  <div class="toast" id="toast"></div>
+
+  <script src="./app.js"></script>
+</body>
+</html>
+

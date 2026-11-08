@@ -1,0 +1,1272 @@
+﻿<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="theme-color" content="#1e293b" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="코드찾기" />
+  <title>3CODE & SLIC 정보찾기</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%231e293b'/><text x='50' y='44' font-family='sans-serif' font-size='26' font-weight='bold' fill='%2338bdf8' text-anchor='middle'>3CODE</text><text x='50' y='74' font-family='sans-serif' font-size='22' font-weight='bold' fill='%23ffffff' text-anchor='middle'>SLIC</text></svg>" />
+  <link rel="manifest" href="./manifest.json" />
+  <style>
+:root {
+  --bg: #f1f5f9;
+  --surface: #ffffff;
+  --text-primary: #0f172a;
+  --text-secondary: #475569;
+  --text-muted: #94a3b8;
+  --border: #e2e8f0;
+  --primary: #2563eb;
+  --primary-dark: #1d4ed8;
+  --primary-light: #eff6ff;
+  --header-bg: #1e293b;
+  --asia-bg: #dcfce7;
+  --asia-text: #15803d;
+  --eur-bg: #dbeafe;
+  --eur-text: #1d4ed8;
+  --us-bg: #fef3c7;
+  --us-text: #b45309;
+  --danger: #ef4444;
+  --danger-bg: #fef2f2;
+  --radius: 14px;
+  --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.06);
+  --shadow-md: 0 4px 12px rgba(15, 23, 42, 0.08);
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Pretendard", "Malgun Gothic", "Apple SD Gothic Neo", sans-serif;
+  background-color: var(--bg);
+  color: var(--text-primary);
+  line-height: 1.4;
+  padding-bottom: 90px;
+}
+
+.app-container {
+  max-width: 540px;
+  margin: 0 auto;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Sticky Top Header & Search */
+.sticky-top {
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  background: var(--header-bg);
+  color: #fff;
+  padding: 14px 16px 12px;
+  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.18);
+}
+
+.top-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.app-title {
+  font-size: 1.15rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.app-title-badge {
+  background: #38bdf8;
+  color: #0f172a;
+  font-size: 0.72rem;
+  font-weight: 800;
+  padding: 2px 7px;
+  border-radius: 6px;
+}
+
+.top-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.icon-btn {
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  color: #f8fafc;
+  border-radius: 8px;
+  padding: 6px 10px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  transition: background 0.15s;
+}
+
+.icon-btn:active {
+  background: rgba(255, 255, 255, 0.24);
+}
+
+/* Search Box */
+.search-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.search-icon {
+  position: absolute;
+  left: 13px;
+  width: 18px;
+  height: 18px;
+  color: var(--text-muted);
+  pointer-events: none;
+}
+
+.search-input {
+  width: 100%;
+  height: 46px;
+  padding: 0 42px 0 40px;
+  font-size: 1rem;
+  font-weight: 500;
+  border: 2px solid transparent;
+  border-radius: 12px;
+  background: #ffffff;
+  color: var(--text-primary);
+  outline: none;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
+  transition: border-color 0.15s;
+}
+
+.search-input:focus {
+  border-color: #38bdf8;
+}
+
+.search-input::placeholder {
+  color: #94a3b8;
+  font-size: 0.9rem;
+  font-weight: 400;
+}
+
+.clear-btn {
+  position: absolute;
+  right: 8px;
+  width: 30px;
+  height: 30px;
+  border: none;
+  border-radius: 50%;
+  background: #e2e8f0;
+  color: #475569;
+  font-size: 0.9rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: none;
+  align-items: center;
+  justify-content: center;
+}
+
+.clear-btn.visible {
+  display: inline-flex;
+}
+
+/* Region Filter Tabs */
+.region-tabs {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+  margin-top: 10px;
+}
+
+.tab-btn {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #cbd5e1;
+  padding: 8px 4px;
+  border-radius: 10px;
+  font-size: 0.84rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  transition: all 0.15s;
+}
+
+.tab-btn .count {
+  font-size: 0.72rem;
+  background: rgba(15, 23, 42, 0.35);
+  color: #e2e8f0;
+  padding: 1px 6px;
+  border-radius: 99px;
+  font-weight: 600;
+}
+
+.tab-btn.active {
+  background: #38bdf8;
+  color: #0f172a;
+  border-color: #38bdf8;
+  box-shadow: 0 2px 8px rgba(56, 189, 248, 0.35);
+}
+
+.tab-btn.active .count {
+  background: rgba(15, 23, 42, 0.18);
+  color: #0f172a;
+}
+
+/* Status & Toolbar Bar */
+.status-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 16px 6px;
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+}
+
+.status-hint {
+  color: var(--text-muted);
+  font-size: 0.76rem;
+}
+
+/* Table Header Bar */
+.list-header {
+  display: grid;
+  grid-template-columns: 88px 105px 1fr 34px;
+  align-items: center;
+  margin: 4px 12px 6px;
+  padding: 8px 14px;
+  background: #e2e8f0;
+  border-radius: 10px;
+  font-size: 0.76rem;
+  font-weight: 800;
+  color: #334155;
+  letter-spacing: 0.03em;
+}
+
+/* Results List */
+.results-list {
+  padding: 0 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.item-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 12px 14px;
+  display: grid;
+  grid-template-columns: 88px 105px 1fr 34px;
+  align-items: center;
+  box-shadow: var(--shadow-sm);
+  cursor: pointer;
+  transition: transform 0.1s, border-color 0.15s, background-color 0.15s;
+}
+
+.item-card:active {
+  transform: scale(0.99);
+  background-color: #f8fafc;
+  border-color: #94a3b8;
+}
+
+.col-code {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 3px;
+}
+
+.code-text {
+  font-size: 1.18rem;
+  font-weight: 800;
+  font-family: "SF Mono", "Roboto Mono", Consolas, monospace;
+  color: var(--text-primary);
+  letter-spacing: 0.03em;
+}
+
+.region-badge {
+  font-size: 0.65rem;
+  font-weight: 800;
+  padding: 1px 6px;
+  border-radius: 5px;
+  letter-spacing: 0.04em;
+}
+
+.region-ASIA {
+  background: var(--asia-bg);
+  color: var(--asia-text);
+}
+
+.region-EUR {
+  background: var(--eur-bg);
+  color: var(--eur-text);
+}
+
+.region-US {
+  background: var(--us-bg);
+  color: var(--us-text);
+}
+
+.col-slic {
+  display: flex;
+  align-items: center;
+}
+
+.slic-badge {
+  font-family: "SF Mono", "Roboto Mono", Consolas, monospace;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #0369a1;
+  background: #f0f9ff;
+  border: 1px solid #bae6fd;
+  padding: 4px 8px;
+  border-radius: 8px;
+  letter-spacing: 0.02em;
+}
+
+.slic-empty {
+  font-size: 0.76rem;
+  font-weight: 600;
+  color: #94a3b8;
+  background: #f8fafc;
+  border: 1px dashed #cbd5e1;
+  padding: 4px 8px;
+  border-radius: 8px;
+}
+
+.col-dest {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  word-break: keep-all;
+  padding-right: 4px;
+}
+
+.col-action {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.edit-btn {
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  border: none;
+  background: #f1f5f9;
+  color: #64748b;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.edit-btn:hover {
+  background: #e2e8f0;
+  color: #0f172a;
+}
+
+/* Search Highlight */
+mark.hl {
+  background: #fef08a;
+  color: #0f172a;
+  padding: 0 2px;
+  border-radius: 3px;
+}
+
+/* Empty State */
+.empty-state {
+  text-align: center;
+  padding: 48px 20px;
+  background: var(--surface);
+  border-radius: var(--radius);
+  border: 1px dashed #cbd5e1;
+  margin: 8px 0;
+}
+
+.empty-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+  margin-bottom: 6px;
+}
+
+.empty-desc {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin-bottom: 16px;
+}
+
+.btn-inline-add {
+  background: var(--primary);
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  padding: 10px 16px;
+  font-size: 0.88rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+/* Floating Action Button */
+.fab-add {
+  position: fixed;
+  right: 18px;
+  bottom: 22px;
+  z-index: 25;
+  background: var(--primary);
+  color: #ffffff;
+  border: none;
+  border-radius: 99px;
+  padding: 14px 20px;
+  font-size: 0.95rem;
+  font-weight: 800;
+  box-shadow: 0 8px 20px rgba(37, 99, 235, 0.38);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  transition: transform 0.15s, background 0.15s;
+}
+
+.fab-add:active {
+  transform: scale(0.95);
+  background: var(--primary-dark);
+}
+
+/* Modal / Bottom Sheet */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.55);
+  backdrop-filter: blur(2px);
+  z-index: 50;
+  display: none;
+  align-items: flex-end;
+  justify-content: center;
+}
+
+.modal-backdrop.open {
+  display: flex;
+}
+
+.modal-sheet {
+  background: var(--surface);
+  width: 100%;
+  max-width: 540px;
+  border-radius: 22px 22px 0 0;
+  padding: 20px 18px 28px;
+  box-shadow: 0 -8px 30px rgba(0, 0, 0, 0.18);
+  animation: slideUp 0.2s ease-out;
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.modal-title {
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: var(--text-primary);
+}
+
+.modal-close {
+  background: #f1f5f9;
+  border: none;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+  cursor: pointer;
+}
+
+.form-group {
+  margin-bottom: 14px;
+}
+
+.form-label {
+  display: block;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+  margin-bottom: 6px;
+}
+
+.region-radio-group {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.region-option {
+  position: relative;
+}
+
+.region-option input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.region-option span {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 42px;
+  border: 2px solid var(--border);
+  border-radius: 10px;
+  font-size: 0.9rem;
+  font-weight: 800;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.region-option input:checked + span {
+  border-color: var(--primary);
+  background: var(--primary-light);
+  color: var(--primary);
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.form-input {
+  width: 100%;
+  height: 44px;
+  padding: 0 12px;
+  font-size: 0.98rem;
+  font-weight: 600;
+  border: 1.5px solid var(--border);
+  border-radius: 10px;
+  outline: none;
+  color: var(--text-primary);
+  background: #f8fafc;
+}
+
+.form-input:focus {
+  border-color: var(--primary);
+  background: #ffffff;
+}
+
+.form-input.uppercase {
+  text-transform: uppercase;
+  font-family: "SF Mono", "Roboto Mono", Consolas, monospace;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 20px;
+}
+
+.btn-delete {
+  background: var(--danger-bg);
+  color: var(--danger);
+  border: 1px solid #fecaca;
+  border-radius: 12px;
+  padding: 0 16px;
+  height: 48px;
+  font-size: 0.92rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.btn-save {
+  flex: 1;
+  background: var(--primary);
+  color: #ffffff;
+  border: none;
+  border-radius: 12px;
+  height: 48px;
+  font-size: 0.98rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.btn-save:active {
+  background: var(--primary-dark);
+}
+
+/* Toast Notification */
+.toast {
+  position: fixed;
+  left: 50%;
+  bottom: 84px;
+  transform: translateX(-50%) translateY(20px);
+  background: rgba(15, 23, 42, 0.92);
+  color: #ffffff;
+  padding: 10px 18px;
+  border-radius: 99px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  z-index: 60;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s, transform 0.2s;
+  white-space: nowrap;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.toast.show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+@media (max-width: 360px) {
+  .list-header,
+  .item-card {
+    grid-template-columns: 74px 92px 1fr 28px;
+    padding: 10px;
+  }
+  .code-text {
+    font-size: 1.05rem;
+  }
+  .slic-badge {
+    font-size: 0.84rem;
+    padding: 3px 6px;
+  }
+  .col-dest {
+    font-size: 0.92rem;
+  }
+}
+
+
+</style>
+</head>
+<body>
+  <div class="app-container">
+    <!-- 상단 고정 검색 및 지역 탭 -->
+    <header class="sticky-top">
+      <div class="top-bar">
+        <h1 class="app-title">
+          <span>3CODE · SLIC 조회</span>
+          <span class="app-title-badge">MOBILE</span>
+        </h1>
+        <div class="top-actions">
+          <button type="button" class="icon-btn" id="resetDataBtn" title="초기 데이터로 복원">
+            초기화
+          </button>
+        </div>
+      </div>
+
+      <!-- 실시간 통합 검색바 (3CODE, SLIC, 목적지, 초성 지원) -->
+      <div class="search-wrapper">
+        <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="11" cy="11" r="8"></circle>
+          <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+        </svg>
+        <input
+          type="search"
+          id="searchInput"
+          class="search-input"
+          placeholder="3CODE, SLIC, 지역명, 초성(예: ㄴㄹㅌ) 검색..."
+          autocomplete="off"
+          autocapitalize="characters"
+        />
+        <button type="button" id="clearSearchBtn" class="clear-btn" aria-label="검색어 지우기">✕</button>
+      </div>
+
+      <!-- 지역별 필터 탭 (전체 / ASIA / EUR / US) -->
+      <nav class="region-tabs" id="regionTabs" aria-label="지역별 필터">
+        <button type="button" class="tab-btn active" data-region="ALL">
+          전체 <span class="count" id="count-ALL">45</span>
+        </button>
+        <button type="button" class="tab-btn" data-region="ASIA">
+          ASIA <span class="count" id="count-ASIA">20</span>
+        </button>
+        <button type="button" class="tab-btn" data-region="EUR">
+          EUR <span class="count" id="count-EUR">10</span>
+        </button>
+        <button type="button" class="tab-btn" data-region="US">
+          US <span class="count" id="count-US">15</span>
+        </button>
+      </nav>
+    </header>
+
+    <!-- 상태 안내 바 -->
+    <div class="status-bar">
+      <span id="statusText">전체 지역 · 검색결과 45건</span>
+      <span class="status-hint">항목을 누르면 수정/삭제 가능</span>
+    </div>
+
+    <!-- 컬럼 헤더 -->
+    <div class="list-header">
+      <div>3CODE</div>
+      <div>SLIC</div>
+      <div>DEST (목적지)</div>
+      <div></div>
+    </div>
+
+    <!-- 검색 결과 리스트 -->
+    <main class="results-list" id="resultsList"></main>
+
+    <!-- 플로팅 코드 추가 버튼 -->
+    <button type="button" class="fab-add" id="fabAddBtn">
+      <span>＋ 코드 추가</span>
+    </button>
+  </div>
+
+  <!-- 데이터 추가 / 수정 / 삭제 모달 (바텀 시트) -->
+  <div class="modal-backdrop" id="itemModal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <div class="modal-sheet">
+      <div class="modal-header">
+        <h2 class="modal-title" id="modalTitle">새 코드 정보 추가</h2>
+        <button type="button" class="modal-close" id="closeModalBtn" aria-label="닫기">✕</button>
+      </div>
+
+      <form id="itemForm">
+        <div class="form-group">
+          <label class="form-label">대륙 / 지역 (REGION)</label>
+          <div class="region-radio-group">
+            <label class="region-option">
+              <input type="radio" name="region" value="ASIA" checked />
+              <span>ASIA</span>
+            </label>
+            <label class="region-option">
+              <input type="radio" name="region" value="EUR" />
+              <span>EUR</span>
+            </label>
+            <label class="region-option">
+              <input type="radio" name="region" value="US" />
+              <span>US</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label" for="codeInput">3CODE (필수)</label>
+            <input
+              type="text"
+              id="codeInput"
+              class="form-input uppercase"
+              placeholder="예: NRT"
+              maxlength="6"
+              required
+            />
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="slicInput">SLIC (선택)</label>
+            <input
+              type="text"
+              id="slicInput"
+              class="form-input uppercase"
+              placeholder="예: 6999JN"
+              maxlength="12"
+            />
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="destInput">DEST / 목적지명 (필수)</label>
+          <input
+            type="text"
+            id="destInput"
+            class="form-input"
+            placeholder="예: 나리타, 독일(프랑크푸르트)"
+            required
+          />
+        </div>
+
+        <div class="modal-actions">
+          <button type="button" class="btn-delete" id="deleteItemBtn" style="display: none;">삭제</button>
+          <button type="submit" class="btn-save">저장하기</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- 토스트 알림 -->
+  <div class="toast" id="toast"></div>
+
+  <script>
+const STORAGE_KEY = 'cpk_code_lookup_data_v1';
+
+// 3장의 이미지에서 추출한 초기 데이터 (총 45개 항목)
+const INITIAL_DATA = [
+  // Image 1 - ASIA (표기: AISA)
+  { id: 'asia-nrt', region: 'ASIA', code: 'NRT', slic: '6999JN', dest: '나리타', aliases: '일본 도쿄' },
+  { id: 'asia-kix', region: 'ASIA', code: 'KIX', slic: '6963JP', dest: '간사이', aliases: '일본 오사카' },
+  { id: 'asia-pek', region: 'ASIA', code: 'PEK', slic: '1542CN', dest: '베이징', aliases: '중국 북경' },
+  { id: 'asia-icn', region: 'ASIA', code: 'ICN', slic: '8669', dest: '인천', aliases: '한국 서울' },
+
+  // Image 3 - ASIA (표기: AISA)
+  { id: 'asia-cgo', region: 'ASIA', code: 'CGO', slic: '0569', dest: '정저우', aliases: '중국 정주' },
+  { id: 'asia-tpe', region: 'ASIA', code: 'TPE', slic: '8879', dest: '타이페이', aliases: '타이베이 대만' },
+  { id: 'asia-sin', region: 'ASIA', code: 'SIN', slic: '8869', dest: '싱가포르', aliases: '싱가폴' },
+  { id: 'asia-szx', region: 'ASIA', code: 'SZX', slic: '0009', dest: '선전', aliases: '중국 심천' },
+  { id: 'asia-hkg', region: 'ASIA', code: 'HKG', slic: '8489', dest: '홍콩', aliases: '' },
+  { id: 'asia-mnl', region: 'ASIA', code: 'MNL', slic: '8899PH', dest: '마닐라', aliases: '필리핀' },
+  { id: 'asia-dxb', region: 'ASIA', code: 'DXB', slic: '8049', dest: '두바이', aliases: '아랍에미리트 UAE' },
+  { id: 'asia-bkk', region: 'ASIA', code: 'BKK', slic: '8889', dest: '방콕', aliases: '태국' },
+  { id: 'asia-pvg', region: 'ASIA', code: 'PVG', slic: '8479', dest: '푸동', aliases: '중국 상하이 상해 푸둥' },
+  { id: 'asia-sgn', region: 'ASIA', code: 'SGN', slic: '8469VN', dest: '호치민', aliases: '베트남' },
+  { id: 'asia-syd', region: 'ASIA', code: 'SYD', slic: '9639AU', dest: '시드니', aliases: '호주 오스트레일리아' },
+  { id: 'asia-del', region: 'ASIA', code: 'DEL', slic: '0849IN', dest: '델리', aliases: '인도 뉴델리' },
+  { id: 'asia-tlv', region: 'ASIA', code: 'TLV', slic: '', dest: '이스라엘', aliases: '텔아비브' },
+  { id: 'asia-crk', region: 'ASIA', code: 'CRK', slic: '8899PH', dest: '클락', aliases: '필리핀' },
+  { id: 'asia-cgk', region: 'ASIA', code: 'CGK', slic: '8659ID', dest: '자카르타', aliases: '인도네시아' },
+  { id: 'asia-han', region: 'ASIA', code: 'HAN', slic: '7989VN', dest: '하노이', aliases: '베트남' },
+
+  // Image 1 - EUR
+  { id: 'eur-cgn', region: 'EUR', code: 'CGN', slic: '3459', dest: '쾰른', aliases: '독일' },
+  { id: 'eur-opo', region: 'EUR', code: 'OPO', slic: '3999PT', dest: '포르투칼', aliases: '포르투갈 포르투' },
+  { id: 'eur-fra', region: 'EUR', code: 'FRA', slic: '', dest: '프랑크프루트', aliases: '프랑크푸르트 독일' },
+  { id: 'eur-man', region: 'EUR', code: 'MAN', slic: '', dest: '영국(맨체스터)', aliases: '맨체스터' },
+  { id: 'eur-lhr', region: 'EUR', code: 'LHR', slic: '', dest: '영국(런던)', aliases: '런던 히드로' },
+  { id: 'eur-haj', region: 'EUR', code: 'HAJ', slic: '', dest: '독일(하노버)', aliases: '하노버' },
+  { id: 'eur-dus', region: 'EUR', code: 'DUS', slic: '', dest: '독일(뒤셀도르프)', aliases: '뒤셀도르프' },
+  { id: 'eur-str', region: 'EUR', code: 'STR', slic: '', dest: '독일(스투트가르트)', aliases: '슈투트가르트' },
+  { id: 'eur-ist', region: 'EUR', code: 'IST', slic: '', dest: '튀르키예(이스탄불)', aliases: '터키 이스탄불' },
+  { id: 'eur-zrh', region: 'EUR', code: 'ZRH', slic: '', dest: '스위스(취리히)', aliases: '취리히' },
+
+  // Image 2 - US
+  { id: 'us-sdf', region: 'US', code: 'SDF', slic: '4049', dest: '루이즈빌', aliases: '미국 루이빌' },
+  { id: 'us-ont', region: 'US', code: 'ONT', slic: '9199', dest: '온타리오', aliases: '미국 캘리포니아' },
+  { id: 'us-anc', region: 'US', code: 'ANC', slic: '9969US', dest: '앵커리지', aliases: '미국 알래스카' },
+  { id: 'us-jfk', region: 'US', code: 'JFK', slic: '1149US', dest: '뉴욕', aliases: '미국' },
+  { id: 'us-iad', region: 'US', code: 'IAD', slic: '2219US', dest: '워싱턴', aliases: '미국 덜레스' },
+  { id: 'us-atl', region: 'US', code: 'ATL', slic: '3039US', dest: '아틀란타', aliases: '애틀랜타 미국' },
+  { id: 'us-lax', region: 'US', code: 'LAX', slic: '9099US', dest: '로스엔젤레스', aliases: '로스앤젤레스 LA 미국' },
+  { id: 'us-dfw', region: 'US', code: 'DFW', slic: '7649US', dest: '댈러스', aliases: '달라스 미국' },
+  { id: 'us-sfo', region: 'US', code: 'SFO', slic: '', dest: '샌프란시스코', aliases: '미국' },
+  { id: 'us-hnl', region: 'US', code: 'HNL', slic: '9689US', dest: '호놀룰루', aliases: '하와이 미국' },
+  { id: 'us-ord', region: 'US', code: 'ORD', slic: '6089US', dest: '시카고', aliases: '오헤어 미국' },
+  { id: 'us-mex', region: 'US', code: 'MEX', slic: '7796MX', dest: '멕시코', aliases: '멕시코시티' },
+  { id: 'us-mty', region: 'US', code: 'MTY', slic: '', dest: '멕시코(몬테레이)', aliases: '몬테레이' },
+  { id: 'us-iah', region: 'US', code: 'IAH', slic: '', dest: '미국(휴스턴)', aliases: '휴스턴' },
+  { id: 'us-bna', region: 'US', code: 'BNA', slic: '', dest: '미국(네슈빌)', aliases: '내슈빌 네쉬빌' }
+];
+
+// 한글 초성 추출 함수
+const CHOSUNG_LIST = [
+  'ㄱ', 'ㄲ', 'ㄴ', 'ㄷ', 'ㄸ', 'ㄹ', 'ㅁ', 'ㅂ', 'ㅃ',
+  'ㅅ', 'ㅆ', 'ㅇ', 'ㅈ', 'ㅉ', 'ㅊ', 'ㅋ', 'ㅌ', 'ㅍ', 'ㅎ'
+];
+
+function getChosung(str) {
+  if (!str) return '';
+  let result = '';
+  for (let i = 0; i < str.length; i++) {
+    const code = str.charCodeAt(i) - 44032;
+    if (code >= 0 && code <= 11171) {
+      result += CHOSUNG_LIST[Math.floor(code / 588)];
+    } else {
+      result += str.charAt(i);
+    }
+  }
+  return result;
+}
+
+// 상태 관리
+let items = [];
+let currentRegion = 'ALL';
+let searchQuery = '';
+let editingId = null;
+
+// DOM 요소
+const searchInput = document.getElementById('searchInput');
+const clearSearchBtn = document.getElementById('clearSearchBtn');
+const regionTabs = document.getElementById('regionTabs');
+const resultsList = document.getElementById('resultsList');
+const statusText = document.getElementById('statusText');
+const fabAddBtn = document.getElementById('fabAddBtn');
+const resetDataBtn = document.getElementById('resetDataBtn');
+
+// 모달 요소
+const itemModal = document.getElementById('itemModal');
+const modalTitle = document.getElementById('modalTitle');
+const closeModalBtn = document.getElementById('closeModalBtn');
+const itemForm = document.getElementById('itemForm');
+const codeInput = document.getElementById('codeInput');
+const slicInput = document.getElementById('slicInput');
+const destInput = document.getElementById('destInput');
+const deleteItemBtn = document.getElementById('deleteItemBtn');
+const toastEl = document.getElementById('toast');
+
+let toastTimer = null;
+function showToast(message) {
+  toastEl.textContent = message;
+  toastEl.classList.add('show');
+  if (toastTimer) clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => {
+    toastEl.classList.remove('show');
+  }, 2000);
+}
+
+// 데이터 불러오기 및 저장
+function loadData() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        items = parsed;
+        return;
+      }
+    }
+  } catch (e) {
+    console.error('Failed to read localStorage:', e);
+  }
+  items = JSON.parse(JSON.stringify(INITIAL_DATA));
+  saveData();
+}
+
+function saveData() {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
+  } catch (e) {
+    console.error('Failed to save localStorage:', e);
+  }
+}
+
+// 검색 매칭 검사 (3CODE, SLIC, DEST, 한글 초성, 대체 표기 모두 지원)
+function matchesItem(item, query) {
+  if (!query) return true;
+  const q = query.trim().toLowerCase();
+  if (!q) return true;
+
+  const code = (item.code || '').toLowerCase();
+  const slic = (item.slic || '').toLowerCase();
+  const dest = (item.dest || '').toLowerCase();
+  const aliases = (item.aliases || '').toLowerCase();
+  const region = (item.region || '').toLowerCase();
+
+  // 일반 문자열 포함 검사
+  if (
+    code.includes(q) ||
+    slic.includes(q) ||
+    dest.includes(q) ||
+    aliases.includes(q) ||
+    region.includes(q)
+  ) {
+    return true;
+  }
+
+  // 한글 초성 검색 검사 (괄호 등 특수문자 제거 후 비교도 지원)
+  const destChosung = getChosung(dest);
+  const destCleanChosung = getChosung(dest.replace(/[()/\s]/g, ''));
+  const aliasChosung = getChosung(aliases);
+
+  if (
+    destChosung.includes(q) ||
+    destCleanChosung.includes(q) ||
+    aliasChosung.includes(q)
+  ) {
+    return true;
+  }
+
+  return false;
+}
+
+// 검색어 하이라이트 렌더링
+function highlightText(text, query) {
+  if (!text) return '';
+  const escaped = text
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+  if (!query || !query.trim()) return escaped;
+
+  const q = query.trim();
+  const idx = text.toLowerCase().indexOf(q.toLowerCase());
+  if (idx === -1) return escaped;
+
+  const before = text.slice(0, idx).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  const match = text.slice(idx, idx + q.length).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  const after = text.slice(idx + q.length).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  return `${before}<mark class="hl">${match}</mark>${after}`;
+}
+
+// 탭 카운트 업데이트
+function updateTabCounts() {
+  const counts = {
+    ALL: 0,
+    ASIA: 0,
+    EUR: 0,
+    US: 0
+  };
+
+  items.forEach((item) => {
+    if (matchesItem(item, searchQuery)) {
+      counts.ALL++;
+      if (counts[item.region] !== undefined) {
+        counts[item.region]++;
+      }
+    }
+  });
+
+  document.getElementById('count-ALL').textContent = counts.ALL;
+  document.getElementById('count-ASIA').textContent = counts.ASIA;
+  document.getElementById('count-EUR').textContent = counts.EUR;
+  document.getElementById('count-US').textContent = counts.US;
+}
+
+// 리스트 렌더링
+function render() {
+  updateTabCounts();
+
+  const filtered = items.filter((item) => {
+    const regionOk = currentRegion === 'ALL' || item.region === currentRegion;
+    return regionOk && matchesItem(item, searchQuery);
+  });
+
+  const regionLabel = currentRegion === 'ALL' ? '전체 지역' : currentRegion;
+  statusText.textContent = `${regionLabel} · 검색결과 ${filtered.length}건`;
+
+  if (filtered.length === 0) {
+    const safeQuery = searchQuery.trim();
+    resultsList.innerHTML = `
+      <div class="empty-state">
+        <div class="empty-title">일치하는 데이터가 없습니다</div>
+        <div class="empty-desc">
+          ${safeQuery ? `'${safeQuery}'에 대한 검색 결과가 없습니다.` : '해당 지역에 등록된 데이터가 없습니다.'}
+        </div>
+        <button type="button" class="btn-inline-add" id="inlineAddBtn">+ 새 코드 직접 추가하기</button>
+      </div>
+    `;
+    const inlineAddBtn = document.getElementById('inlineAddBtn');
+    if (inlineAddBtn) {
+      inlineAddBtn.addEventListener('click', () => openModalForCreate(safeQuery));
+    }
+    return;
+  }
+
+  resultsList.innerHTML = filtered
+    .map((item) => {
+      const codeHtml = highlightText(item.code, searchQuery);
+      const destHtml = highlightText(item.dest, searchQuery);
+      const slicHtml = item.slic
+        ? `<span class="slic-badge">${highlightText(item.slic, searchQuery)}</span>`
+        : `<span class="slic-empty">미등록</span>`;
+
+      return `
+        <div class="item-card" data-id="${item.id}">
+          <div class="col-code">
+            <span class="code-text">${codeHtml}</span>
+            <span class="region-badge region-${item.region}">${item.region}</span>
+          </div>
+          <div class="col-slic">
+            ${slicHtml}
+          </div>
+          <div class="col-dest">${destHtml}</div>
+          <div class="col-action">
+            <button type="button" class="edit-btn" data-edit-id="${item.id}" aria-label="수정">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 20h9"></path>
+                <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
+              </svg>
+            </button>
+          </div>
+        </div>
+      `;
+    })
+    .join('');
+}
+
+// 모달 열기 (새 항목 추가)
+function openModalForCreate(prefill = '') {
+  editingId = null;
+  modalTitle.textContent = '새 코드 정보 추가';
+  deleteItemBtn.style.display = 'none';
+
+  const defaultRegion = currentRegion === 'ALL' ? 'ASIA' : currentRegion;
+  const radio = itemForm.querySelector(`input[name="region"][value="${defaultRegion}"]`);
+  if (radio) radio.checked = true;
+
+  // 검색어가 영문 3자리면 3CODE에, 한글이면 목적지에 자동 입력
+  if (/^[a-zA-Z]{2,4}$/.test(prefill)) {
+    codeInput.value = prefill.toUpperCase();
+    destInput.value = '';
+  } else {
+    codeInput.value = '';
+    destInput.value = prefill;
+  }
+  slicInput.value = '';
+
+  itemModal.classList.add('open');
+  setTimeout(() => {
+    if (!codeInput.value) codeInput.focus();
+    else slicInput.focus();
+  }, 80);
+}
+
+// 모달 열기 (항목 수정/삭제)
+function openModalForEdit(id) {
+  const target = items.find((it) => it.id === id);
+  if (!target) return;
+
+  editingId = id;
+  modalTitle.textContent = `${target.code} (${target.dest}) 정보 수정`;
+  deleteItemBtn.style.display = 'inline-block';
+
+  const radio = itemForm.querySelector(`input[name="region"][value="${target.region}"]`);
+  if (radio) radio.checked = true;
+
+  codeInput.value = target.code || '';
+  slicInput.value = target.slic || '';
+  destInput.value = target.dest || '';
+
+  itemModal.classList.add('open');
+}
+
+function closeModal() {
+  itemModal.classList.remove('open');
+  editingId = null;
+}
+
+// 이벤트 바인딩
+searchInput.addEventListener('input', (e) => {
+  searchQuery = e.target.value;
+  clearSearchBtn.classList.toggle('visible', searchQuery.length > 0);
+  render();
+});
+
+clearSearchBtn.addEventListener('click', () => {
+  searchInput.value = '';
+  searchQuery = '';
+  clearSearchBtn.classList.remove('visible');
+  searchInput.focus();
+  render();
+});
+
+regionTabs.addEventListener('click', (e) => {
+  const btn = e.target.closest('.tab-btn');
+  if (!btn) return;
+  currentRegion = btn.dataset.region;
+  regionTabs.querySelectorAll('.tab-btn').forEach((b) => b.classList.remove('active'));
+  btn.classList.add('active');
+  render();
+});
+
+resultsList.addEventListener('click', (e) => {
+  const card = e.target.closest('.item-card');
+  if (!card) return;
+  const id = card.dataset.id;
+  openModalForEdit(id);
+});
+
+fabAddBtn.addEventListener('click', () => openModalForCreate(searchQuery.trim()));
+closeModalBtn.addEventListener('click', closeModal);
+
+itemModal.addEventListener('click', (e) => {
+  if (e.target === itemModal) closeModal();
+});
+
+// 저장 처리 (추가 및 수정)
+itemForm.addEventListener('submit', (e) => {
+  e.preventDefault();
+  const selectedRegion = itemForm.querySelector('input[name="region"]:checked')?.value || 'ASIA';
+  const code = codeInput.value.trim().toUpperCase();
+  const slic = slicInput.value.trim().toUpperCase();
+  const dest = destInput.value.trim();
+
+  if (!code || !dest) {
+    showToast('3CODE와 목적지(DEST)를 입력해 주세요.');
+    return;
+  }
+
+  if (editingId) {
+    const idx = items.findIndex((it) => it.id === editingId);
+    if (idx !== -1) {
+      items[idx] = {
+        ...items[idx],
+        region: selectedRegion,
+        code,
+        slic,
+        dest
+      };
+      saveData();
+      render();
+      closeModal();
+      showToast(`${code} 정보가 수정되었습니다.`);
+    }
+  } else {
+    const newItem = {
+      id: `custom-${Date.now()}`,
+      region: selectedRegion,
+      code,
+      slic,
+      dest,
+      aliases: ''
+    };
+    items.unshift(newItem);
+    saveData();
+    render();
+    closeModal();
+    showToast(`${code} (${dest}) 항목이 추가되었습니다.`);
+  }
+});
+
+// 삭제 처리
+deleteItemBtn.addEventListener('click', () => {
+  if (!editingId) return;
+  const target = items.find((it) => it.id === editingId);
+  if (!target) return;
+
+  if (confirm(`'${target.code} (${target.dest})' 항목을 삭제하시겠습니까?`)) {
+    items = items.filter((it) => it.id !== editingId);
+    saveData();
+    render();
+    closeModal();
+    showToast(`${target.code} 항목이 삭제되었습니다.`);
+  }
+});
+
+// 초기 데이터 복원 버튼
+resetDataBtn.addEventListener('click', () => {
+  if (confirm('추가·수정한 내역을 초기화하고 원본 이미지 데이터(45개)로 복원하시겠습니까?')) {
+    items = JSON.parse(JSON.stringify(INITIAL_DATA));
+    saveData();
+    render();
+    showToast('초기 데이터(45개)로 복원되었습니다.');
+  }
+});
+
+// 서비스 워커 등록 (오프라인 지원)
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js').catch(() => {});
+  });
+}
+
+// 앱 시작
+loadData();
+render();
+
+
+</script>
+</body>
+</html>
+
+
