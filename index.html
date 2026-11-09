@@ -23,7 +23,7 @@
         </h1>
         <div class="top-actions">
           <button type="button" class="icon-btn" id="typeDictBtn" style="display: none;" title="박스 타입별 현장명칭 관리">
-            🏷️ 타입별 현장명칭
+            🏷️ 타입·현장명칭 표
           </button>
           <button type="button" class="icon-btn" id="resetDataBtn" title="초기 데이터로 복원">
             초기화
@@ -37,7 +37,7 @@
           ✈️ 목적지 코드 (3CODE·SLIC)
         </button>
         <button type="button" class="mode-btn" data-mode="ULD">
-          📦 ULD 컨테이너 (현장명칭)
+          📦 ULD 컨테이너 (조업장비)
         </button>
       </div>
 
@@ -74,7 +74,7 @@
         </button>
       </nav>
 
-      <!-- [모드 2] ULD 박스 타입별 필터 탭 (동적 렌더링) -->
+      <!-- [모드 2] ULD 현장명칭 / 박스 타입별 필터 탭 (동적 렌더링) -->
       <nav class="uld-type-tabs" id="uldTypeTabs" style="display: none;" aria-label="박스 타입별 필터"></nav>
     </header>
 
@@ -185,7 +185,7 @@
   <div class="modal-backdrop" id="uldModal" role="dialog" aria-modal="true" aria-labelledby="uldModalTitle">
     <div class="modal-sheet modal-sheet-scroll">
       <div class="modal-header">
-        <h2 class="modal-title" id="uldModalTitle">ULD 컨테이너 등록</h2>
+        <h2 class="modal-title" id="uldModalTitle">ULD 컨테이너 정보 등록/수정</h2>
         <button type="button" class="modal-close" id="closeUldModalBtn" aria-label="닫기">✕</button>
       </div>
 
@@ -197,7 +197,7 @@
             <img id="uldPhotoPreview" class="uld-photo-preview" alt="컨테이너 사진 미리보기" style="display: none;" />
             <div id="photoPlaceholder" class="photo-placeholder">
               <div class="photo-placeholder-icon">📷</div>
-              <div class="photo-placeholder-text">컨테이너 명칭 사진을 찍거나 선택하세요</div>
+              <div class="photo-placeholder-text">컨테이너 사진을 찍거나 선택하세요</div>
             </div>
           </div>
 
@@ -220,7 +220,7 @@
         <!-- 컨테이너 전체 명칭 -->
         <div class="form-group">
           <label class="form-label" for="uldFullNameInput">
-            ULD 컨테이너 명칭 <span class="label-sub">(예: AMP 27945 UPS/5X)</span>
+            컨테이너 명칭 <span class="label-sub">(예: AMP 27945 UPS/5X, AAD 43145 UPS/5X)</span>
           </label>
           <input
             type="text"
@@ -231,11 +231,11 @@
           />
         </div>
 
-        <!-- 박스 타입 (예: AMP) & 현장사용명칭 -->
+        <!-- 박스 타입 (예: AMP) & 현장사용명칭 (예: L9) -->
         <div class="form-row">
           <div class="form-group">
             <label class="form-label" for="uldTypeInput">
-              박스 타입 코드 <span class="label-sub">(자동추출)</span>
+              ULD 타입 <span class="label-sub">(예: AMP)</span>
             </label>
             <input
               type="text"
@@ -248,32 +248,47 @@
           </div>
           <div class="form-group">
             <label class="form-label" for="uldFieldNameInput">
-              현장사용명칭 <span class="label-highlight">(필수·핵심)</span>
+              현장사용명칭 <span class="label-highlight">(예: L9, A1, M1)</span>
             </label>
             <input
               type="text"
               id="uldFieldNameInput"
-              class="form-input input-highlight"
-              placeholder="현장에서 부르는 명칭 입력"
+              class="form-input input-highlight uppercase"
+              placeholder="예: L9, A1, A2, M1, M1H, L11"
               required
             />
           </div>
         </div>
 
-        <p class="field-sync-notice">
-          💡 <strong>박스 타입(예: AMP)</strong>의 현장사용명칭을 입력해 저장하면, 동일한 박스 타입의 컨테이너들에 현장사용명칭이 함께 연동되어 표시됩니다.
-        </p>
-
-        <!-- 메모 (선택) -->
+        <!-- 규격 Dims : L x W x H (Inch) -->
         <div class="form-group">
-          <label class="form-label" for="uldNoteInput">비고 / 메모 (선택)</label>
+          <label class="form-label" for="uldDimsInput">
+            규격 Dims : L × W × H (Inch) <span class="label-sub">(자동완성·수정 가능)</span>
+          </label>
+          <input
+            type="text"
+            id="uldDimsInput"
+            class="form-input"
+            placeholder="예: 125 x 96 x 64"
+          />
+        </div>
+
+        <!-- 탑재 위치 / NOTE -->
+        <div class="form-group">
+          <label class="form-label" for="uldNoteInput">
+            NOTE / 탑재 위치 및 특이사항 <span class="label-sub">(자동완성·수정 가능)</span>
+          </label>
           <input
             type="text"
             id="uldNoteInput"
             class="form-input"
-            placeholder="예: 파손 주의, 2층 적재용 등"
+            placeholder="예: 767 Main Deck Center Load / 767, 747 Lower Deck"
           />
         </div>
+
+        <p class="field-sync-notice">
+          💡 <strong>ULD 타입(AAD, AAY, AMJ, AMD, AMP, AAZ, AAP, ALP)</strong>을 입력하면 조업 장비 기준표의 <strong>현장사용명칭(A1, A2, M1, M1H, L9, L11)</strong>, <strong>규격(Dims)</strong>, <strong>탑재 위치(NOTE)</strong>가 자동으로 채워지며 직접 수정·저장도 가능합니다.
+        </p>
 
         <div class="modal-actions">
           <button type="button" class="btn-delete" id="deleteUldBtn" style="display: none;">삭제</button>
@@ -287,11 +302,11 @@
   <div class="modal-backdrop" id="typeDictModal" role="dialog" aria-modal="true" aria-labelledby="typeDictModalTitle">
     <div class="modal-sheet modal-sheet-scroll">
       <div class="modal-header">
-        <h2 class="modal-title" id="typeDictModalTitle">🏷️ 박스 타입별 현장사용명칭 관리</h2>
+        <h2 class="modal-title" id="typeDictModalTitle">🏷️ ULD 타입별 현장사용명칭 기준표</h2>
         <button type="button" class="modal-close" id="closeTypeDictModalBtn" aria-label="닫기">✕</button>
       </div>
       <p class="dict-guide">
-        박스 앞글자 타입(예: <strong>AMP</strong>, <strong>AKE</strong>, <strong>AAY</strong> 등)별로 현장에서 사용하는 명칭을 등록·수정하면 모든 컨테이너에 즉시 반영됩니다.
+        조업 장비 기준표에 따른 <strong>ULD 타입(AAD, AMP 등) ↔ 현장사용명칭(A1, L9 등)</strong> 매핑입니다. 새로운 타입을 추가하거나 명칭을 수정하면 모든 컨테이너에 즉시 반영됩니다.
       </p>
 
       <form id="addTypeMappingForm" class="dict-add-row">
@@ -299,15 +314,15 @@
           type="text"
           id="newTypeCodeInput"
           class="form-input uppercase dict-code-input"
-          placeholder="타입 (예: AMP)"
+          placeholder="ULD타입(예:AMP)"
           maxlength="6"
           required
         />
         <input
           type="text"
           id="newTypeFieldNameInput"
-          class="form-input dict-name-input"
-          placeholder="현장사용명칭 입력"
+          class="form-input uppercase dict-name-input"
+          placeholder="현장명칭(예:L9)"
           required
         />
         <button type="submit" class="btn-dict-add">저장</button>
