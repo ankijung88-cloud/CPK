@@ -6,9 +6,9 @@
   <meta name="theme-color" content="#1e293b" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  <meta name="apple-mobile-web-app-title" content="CPK 코드·ULD" />
-  <title>CPK 3CODE · SLIC & ULD 컨테이너</title>
-  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%231e293b'/><text x='50' y='44' font-family='sans-serif' font-size='26' font-weight='bold' fill='%2338bdf8' text-anchor='middle'>3CODE</text><text x='50' y='74' font-family='sans-serif' font-size='22' font-weight='bold' fill='%23ffffff' text-anchor='middle'>ULD</text></svg>" />
+  <meta name="apple-mobile-web-app-title" content="CPK 현장앱" />
+  <title>CPK 3CODE · ULD · 실시간 항공편</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%231e293b'/><text x='50' y='44' font-family='sans-serif' font-size='26' font-weight='bold' fill='%2338bdf8' text-anchor='middle'>CPK</text><text x='50' y='74' font-family='sans-serif' font-size='22' font-weight='bold' fill='%23fbbf24' text-anchor='middle'>5X·ULD</text></svg>" />
   <link rel="manifest" href="./manifest.json" />
   <link rel="stylesheet" href="./styles.css" />
 </head>
@@ -18,26 +18,40 @@
     <header class="sticky-top">
       <div class="top-bar">
         <h1 class="app-title">
-          <span>CPK 현장 정보찾기</span>
-          <span class="app-title-badge">MOBILE</span>
+          <span>CPK 현장 통합조회</span>
+          <span class="app-title-badge">ICN · UPS</span>
         </h1>
         <div class="top-actions">
           <button type="button" class="icon-btn" id="typeDictBtn" style="display: none;" title="박스 타입별 현장명칭 관리">
             🏷️ 타입·현장명칭 표
           </button>
+          <a
+            href="https://www.airport.kr/ap_ko/876/subview.do"
+            target="_blank"
+            rel="noopener"
+            class="icon-btn"
+            id="icnOfficialLinkBtn"
+            style="display: none; text-decoration: none;"
+            title="인천공항 공식 화물운항정보 새창"
+          >
+            🏢 공항 공식웹
+          </a>
           <button type="button" class="icon-btn" id="resetDataBtn" title="초기 데이터로 복원">
             초기화
           </button>
         </div>
       </div>
 
-      <!-- 메인 모드 전환 탭 (목적지 코드 조회 vs ULD 컨테이너 관리) -->
-      <div class="mode-switch" id="modeSwitch">
+      <!-- 메인 모드 전환 탭 (3개 탭: 목적지 코드 / ULD 컨테이너 / 실시간 항공편) -->
+      <div class="mode-switch mode-switch-3" id="modeSwitch">
         <button type="button" class="mode-btn active" data-mode="CODE">
-          ✈️ 목적지 코드 (3CODE·SLIC)
+          ✈️ 목적지 코드
         </button>
         <button type="button" class="mode-btn" data-mode="ULD">
-          📦 ULD 컨테이너 (조업장비)
+          📦 ULD 장비
+        </button>
+        <button type="button" class="mode-btn" data-mode="FLIGHT">
+          📡 실시간 항공편
         </button>
       </div>
 
@@ -76,6 +90,41 @@
 
       <!-- [모드 2] ULD 현장명칭 / 박스 타입별 필터 탭 (동적 렌더링) -->
       <nav class="uld-type-tabs" id="uldTypeTabs" style="display: none;" aria-label="박스 타입별 필터"></nav>
+
+      <!-- [모드 3] 실시간 항공편 컨트롤 & 출·도착 필터 탭 -->
+      <div class="flight-controls" id="flightControls" style="display: none;">
+        <div class="flight-top-row">
+          <div class="flight-airline-toggle" id="flightAirlineToggle">
+            <button type="button" class="ups-toggle-btn active" data-airline-filter="UPS">
+              UPS 전용 (5X)
+            </button>
+            <button type="button" class="ups-toggle-btn" data-airline-filter="ALL">
+              전체 화물기
+            </button>
+          </div>
+          <div class="flight-date-sync">
+            <input type="date" id="flightDateInput" class="flight-date-input" aria-label="운항 날짜 선택" />
+            <button type="button" class="btn-live-sync" id="liveSyncBtn" title="인천공항 실시간 운항정보 동기화">
+              🔄 실시간 갱신
+            </button>
+          </div>
+        </div>
+
+        <nav class="region-tabs flight-dir-tabs" id="flightDirTabs" aria-label="출도착 필터">
+          <button type="button" class="tab-btn active" data-flight-dir="ALL">
+            전체 <span class="count" id="fcount-ALL">0</span>
+          </button>
+          <button type="button" class="tab-btn" data-flight-dir="ARR">
+            🛬 도착(ARR) <span class="count" id="fcount-ARR">0</span>
+          </button>
+          <button type="button" class="tab-btn" data-flight-dir="DEP">
+            🛫 출발(DEP) <span class="count" id="fcount-DEP">0</span>
+          </button>
+          <button type="button" class="tab-btn" data-flight-dir="SPOT">
+            📍 스팟배정 <span class="count" id="fcount-SPOT">0</span>
+          </button>
+        </nav>
+      </div>
     </header>
 
     <!-- 상태 안내 바 -->
@@ -92,7 +141,7 @@
       <div></div>
     </div>
 
-    <!-- 검색 결과 리스트 (목적지 코드 & ULD 컨테이너 공용 영역) -->
+    <!-- 검색 결과 리스트 (목적지 코드 & ULD 컨테이너 & 실시간 항공편 공용 영역) -->
     <main class="results-list" id="resultsList"></main>
 
     <!-- 플로팅 액션 버튼 영역 -->
@@ -338,6 +387,146 @@
       <button type="button" class="lightbox-close" id="closeLightboxBtn">✕ 닫기</button>
       <img id="lightboxImg" src="" alt="컨테이너 확대 사진" />
       <div id="lightboxCaption" class="lightbox-caption"></div>
+    </div>
+  </div>
+
+  <!-- [모달 5] 항공편 스팟·시간·현장메모 추가 / 수정 / 삭제 모달 -->
+  <div class="modal-backdrop" id="flightModal" role="dialog" aria-modal="true" aria-labelledby="flightModalTitle">
+    <div class="modal-sheet modal-sheet-scroll">
+      <div class="modal-header">
+        <h2 class="modal-title" id="flightModalTitle">항공편 및 스팟 정보 등록/수정</h2>
+        <button type="button" class="modal-close" id="closeFlightModalBtn" aria-label="닫기">✕</button>
+      </div>
+
+      <form id="flightForm">
+        <div class="form-group">
+          <label class="form-label">출·도착 구분 (DIRECTION)</label>
+          <div class="region-radio-group" style="grid-template-columns: 1fr 1fr;">
+            <label class="region-option">
+              <input type="radio" name="flightDir" value="ARR" checked />
+              <span>🛬 도착편 (ARR)</span>
+            </label>
+            <label class="region-option">
+              <input type="radio" name="flightDir" value="DEP" />
+              <span>🛫 출발편 (DEP)</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label" for="flightNoInput">편명 (필수)</label>
+            <input
+              type="text"
+              id="flightNoInput"
+              class="form-input uppercase"
+              placeholder="예: 5X011, 5X174"
+              required
+            />
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="flightAirlineInput">항공사명</label>
+            <input
+              type="text"
+              id="flightAirlineInput"
+              class="form-input"
+              placeholder="예: 유피에스항공"
+            />
+          </div>
+        </div>
+
+        <div class="form-row" style="grid-template-columns: 1fr 1fr 1fr;">
+          <div class="form-group">
+            <label class="form-label" for="flightSpotInput">
+              주기장/스팟 <span class="label-highlight">(SPOT)</span>
+            </label>
+            <input
+              type="text"
+              id="flightSpotInput"
+              class="form-input input-highlight uppercase"
+              placeholder="예: 632"
+            />
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="flightTimeInput">변경/실제시간</label>
+            <input
+              type="text"
+              id="flightTimeInput"
+              class="form-input"
+              placeholder="예: 09:30"
+              required
+            />
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="flightSchedInput">계획시간</label>
+            <input
+              type="text"
+              id="flightSchedInput"
+              class="form-input"
+              placeholder="예: 08:00"
+            />
+          </div>
+        </div>
+
+        <div class="form-row" style="grid-template-columns: 1fr 1fr;">
+          <div class="form-group">
+            <label class="form-label" for="flightLocationInput">출발/목적지 (3CODE)</label>
+            <input
+              type="text"
+              id="flightLocationInput"
+              class="form-input"
+              placeholder="예: 앵커리지(ANC)"
+              required
+            />
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="flightViaInput">경유지 (선택)</label>
+            <input
+              type="text"
+              id="flightViaInput"
+              class="form-input"
+              placeholder="예: 정저우(CGO)"
+            />
+          </div>
+        </div>
+
+        <div class="form-row" style="grid-template-columns: 1fr 1fr;">
+          <div class="form-group">
+            <label class="form-label" for="flightTerminalInput">터미널</label>
+            <input
+              type="text"
+              id="flightTerminalInput"
+              class="form-input"
+              placeholder="예: Cargo(S)"
+              value="Cargo(S)"
+            />
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="flightStateInput">운항현황</label>
+            <input
+              type="text"
+              id="flightStateInput"
+              class="form-input"
+              placeholder="예: 도착, 출발, 지연, 예정"
+            />
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="flightMemoInput">현장 작업 메모 (선택)</label>
+          <input
+            type="text"
+            id="flightMemoInput"
+            class="form-input"
+            placeholder="예: L9 6개, A1 4개 조업 예정"
+          />
+        </div>
+
+        <div class="modal-actions">
+          <button type="button" class="btn-delete" id="deleteFlightBtn" style="display: none;">삭제</button>
+          <button type="submit" class="btn-save">저장하기</button>
+        </div>
+      </form>
     </div>
   </div>
 

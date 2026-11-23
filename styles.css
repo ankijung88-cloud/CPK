@@ -116,15 +116,20 @@ body {
   margin-bottom: 10px;
 }
 
+.mode-switch.mode-switch-3 {
+  grid-template-columns: repeat(3, 1fr);
+}
+
 .mode-btn {
   background: transparent;
   border: none;
   color: #94a3b8;
-  padding: 9px 6px;
+  padding: 9px 4px;
   border-radius: 9px;
-  font-size: 0.84rem;
+  font-size: 0.8rem;
   font-weight: 800;
   cursor: pointer;
+  white-space: nowrap;
   transition: all 0.15s;
 }
 
@@ -576,6 +581,368 @@ body {
 .uld-note.warn {
   color: #b91c1c;
   font-weight: 700;
+}
+
+/* ==========================================
+   실시간 항공편 (UPS · 인천공항) 컨트롤 및 카드 스타일
+   ========================================== */
+.flight-controls {
+  margin-top: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.flight-top-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.flight-airline-toggle {
+  display: inline-flex;
+  background: rgba(15, 23, 42, 0.48);
+  padding: 3px;
+  border-radius: 10px;
+  gap: 4px;
+}
+
+.ups-toggle-btn {
+  background: transparent;
+  border: none;
+  color: #cbd5e1;
+  font-size: 0.78rem;
+  font-weight: 800;
+  padding: 6px 10px;
+  border-radius: 7px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.15s;
+}
+
+.ups-toggle-btn.active[data-airline-filter="UPS"] {
+  background: #fbbf24;
+  color: #351c15;
+  box-shadow: 0 2px 6px rgba(251, 191, 36, 0.35);
+}
+
+.ups-toggle-btn.active[data-airline-filter="ALL"] {
+  background: #38bdf8;
+  color: #0f172a;
+}
+
+.flight-date-sync {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  flex: 1;
+  justify-content: flex-end;
+}
+
+.flight-date-input {
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  color: #fff;
+  border-radius: 8px;
+  padding: 5px 7px;
+  font-size: 0.76rem;
+  font-weight: 700;
+  outline: none;
+  color-scheme: dark;
+}
+
+.btn-live-sync {
+  background: #22c55e;
+  color: #052e16;
+  border: none;
+  border-radius: 8px;
+  padding: 6px 10px;
+  font-size: 0.76rem;
+  font-weight: 800;
+  cursor: pointer;
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  transition: transform 0.12s, opacity 0.15s;
+}
+
+.btn-live-sync:active {
+  transform: scale(0.96);
+}
+
+.btn-live-sync.loading {
+  opacity: 0.7;
+  pointer-events: none;
+}
+
+.flight-dir-tabs {
+  margin-top: 0;
+}
+
+/* 항공편 카드 */
+.flight-card {
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  border-radius: 14px;
+  padding: 13px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  box-shadow: var(--shadow-sm);
+  cursor: pointer;
+  transition: transform 0.1s, border-color 0.15s;
+}
+
+.flight-card.is-ups {
+  border-left: 5px solid #d97706;
+}
+
+.flight-card:active {
+  transform: scale(0.99);
+}
+
+.flight-card-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.flight-id-group {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  flex-wrap: wrap;
+}
+
+.dir-badge {
+  font-size: 0.72rem;
+  font-weight: 900;
+  padding: 3px 7px;
+  border-radius: 6px;
+  letter-spacing: 0.02em;
+}
+
+.dir-ARR {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.dir-DEP {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+
+.flight-no {
+  font-family: "SF Mono", "Roboto Mono", Consolas, monospace;
+  font-size: 1.2rem;
+  font-weight: 900;
+  color: #0f172a;
+  letter-spacing: 0.03em;
+}
+
+.ups-pill {
+  background: #351c15;
+  color: #fbbf24;
+  font-size: 0.7rem;
+  font-weight: 900;
+  padding: 2px 7px;
+  border-radius: 6px;
+  letter-spacing: 0.03em;
+}
+
+.airline-pill {
+  background: #f1f5f9;
+  color: #475569;
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 6px;
+}
+
+.flight-spot-group {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.spot-badge {
+  background: #fef3c7;
+  border: 1.5px solid #f59e0b;
+  color: #92400e;
+  font-family: "SF Mono", "Roboto Mono", Consolas, monospace;
+  font-size: 0.96rem;
+  font-weight: 900;
+  padding: 4px 10px;
+  border-radius: 8px;
+}
+
+.spot-badge.empty {
+  background: #f8fafc;
+  border: 1px dashed #cbd5e1;
+  color: #94a3b8;
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.state-badge {
+  font-size: 0.76rem;
+  font-weight: 800;
+  padding: 4px 8px;
+  border-radius: 7px;
+}
+
+.state-done {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.state-delay {
+  background: #fef2f2;
+  color: #dc2626;
+  border: 1px solid #fecaca;
+}
+
+.state-sched {
+  background: #f1f5f9;
+  color: #475569;
+}
+
+.flight-card-mid {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 9px 11px;
+  gap: 10px;
+}
+
+.flight-time-box {
+  display: flex;
+  flex-direction: column;
+  min-width: 82px;
+}
+
+.time-label {
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: #64748b;
+}
+
+.time-actual {
+  font-family: "SF Mono", "Roboto Mono", Consolas, monospace;
+  font-size: 1.18rem;
+  font-weight: 900;
+  color: #0f172a;
+}
+
+.time-sched {
+  font-family: "SF Mono", "Roboto Mono", Consolas, monospace;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #64748b;
+}
+
+.time-sched del {
+  color: #94a3b8;
+}
+
+.flight-route-box {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.route-main {
+  font-size: 0.92rem;
+  font-weight: 800;
+  color: #0f172a;
+  word-break: keep-all;
+}
+
+.route-via {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #0369a1;
+}
+
+.route-slic-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-top: 2px;
+}
+
+.route-slic-chip {
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  color: #1d4ed8;
+  font-size: 0.72rem;
+  font-weight: 800;
+  padding: 2px 7px;
+  border-radius: 6px;
+  font-family: "SF Mono", "Roboto Mono", Consolas, sans-serif;
+}
+
+.flight-card-bottom {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 0.76rem;
+  color: #64748b;
+}
+
+.flight-term-memo {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.term-tag {
+  background: #e2e8f0;
+  color: #334155;
+  font-weight: 800;
+  padding: 2px 6px;
+  border-radius: 5px;
+  font-size: 0.72rem;
+}
+
+.flight-memo-text {
+  color: #0f172a;
+  font-weight: 700;
+}
+
+.flight-quick-links {
+  display: flex;
+  gap: 5px;
+  flex-shrink: 0;
+}
+
+.btn-flight-link {
+  background: #f1f5f9;
+  border: 1px solid #cbd5e1;
+  color: #334155;
+  text-decoration: none;
+  font-size: 0.72rem;
+  font-weight: 800;
+  padding: 4px 8px;
+  border-radius: 7px;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.btn-flight-link:active {
+  background: #e2e8f0;
 }
 
 /* Search Highlight */
