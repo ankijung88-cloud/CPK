@@ -1113,7 +1113,10 @@ function renderFlightMode() {
 
       const fltNoHtml = highlightText(flt.fltNo || '-', searchQuery);
       const airlineSubHtml = !ups && flt.airline ? `<span class="wb-flt-sub">${highlightText(flt.airline, searchQuery)}</span>` : '';
-      const acHtml = highlightText(flt.aircraft || '-', searchQuery);
+      const rawAc = (flt.aircraft || '').trim().toUpperCase();
+      const acHtml = rawAc
+        ? `<button type="button" class="wb-ac-btn" data-ac-guide="${rawAc}" title="클릭하여 ${rawAc} 기종 의미 및 탑재 안내 보기">${highlightText(rawAc, searchQuery)}</button>`
+        : '-';
 
       const staHtml = flt.sta ? highlightText(flt.sta, searchQuery) : '-';
       const ataSubClass = (flt.ataSub || '').includes('지연') ? 'delay' : (flt.ataSub || '').includes('ATA') ? 'done' : '';
@@ -1969,6 +1972,14 @@ resultsList.addEventListener('click', (e) => {
     return;
   }
 
+  // 현황판 내 기종(744, 748, 767) 버튼 클릭 시 기종 상세 안내 모달 오픈
+  const acBtn = e.target.closest('[data-ac-guide]');
+  if (acBtn) {
+    e.stopPropagation();
+    openAircraftGuideModal(acBtn.dataset.acGuide);
+    return;
+  }
+
   // 사진 썸네일 클릭 시 확대 보기
   const zoomWrap = e.target.closest('[data-zoom-id]');
   if (zoomWrap) {
@@ -2034,6 +2045,78 @@ fabCameraBtn.addEventListener('click', () => {
 closeModalBtn.addEventListener('click', closeModal);
 closeUldModalBtn.addEventListener('click', closeUldModal);
 closeFlightModalBtn.addEventListener('click', closeFlightModal);
+
+// 항공기 기종(744 · 748 · 767) 상세 안내 모달 제어
+const aircraftGuideBtn = document.getElementById('aircraftGuideBtn');
+const wbHeaderAcBtn = document.getElementById('wbHeaderAcBtn');
+const aircraftGuideModal = document.getElementById('aircraftGuideModal');
+const closeAircraftGuideModalBtn = document.getElementById('closeAircraftGuideModalBtn');
+const acFilterTabs = document.getElementById('acFilterTabs');
+const acGuideList = document.getElementById('acGuideList');
+
+function openAircraftGuideModal(focusCode = 'ALL') {
+  if (!aircraftGuideModal) return;
+  const normalized = (focusCode || 'ALL').trim().toUpperCase();
+  const knownCodes = ['748', '744', '767'];
+  const targetFilter = knownCodes.includes(normalized) ? normalized : 'ALL';
+
+  // 탭은 전체 비교 또는 선택 기종 표시
+  acFilterTabs.querySelectorAll('.ac-tab-btn').forEach((btn) => {
+    btn.classList.toggle('active', btn.dataset.acFilter === 'ALL');
+  });
+
+  // 전체 카드를 보여주되 클릭한 기종 카드를 파란색 테두리로 강조 및 스크롤
+  let focusCardEl = null;
+  acGuideList.querySelectorAll('.ac-guide-card').forEach((card) => {
+    card.style.display = 'flex';
+    const isTarget = targetFilter !== 'ALL' && card.dataset.acCard === targetFilter;
+    card.classList.toggle('highlight-ac', isTarget);
+    if (isTarget) focusCardEl = card;
+  });
+
+  aircraftGuideModal.classList.add('open');
+  if (focusCardEl) {
+    setTimeout(() => {
+      focusCardEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }, 80);
+  }
+}
+
+if (aircraftGuideBtn) {
+  aircraftGuideBtn.addEventListener('click', () => openAircraftGuideModal('ALL'));
+}
+
+if (wbHeaderAcBtn) {
+  wbHeaderAcBtn.addEventListener('click', () => openAircraftGuideModal('ALL'));
+}
+
+if (closeAircraftGuideModalBtn) {
+  closeAircraftGuideModalBtn.addEventListener('click', () => {
+    aircraftGuideModal.classList.remove('open');
+  });
+}
+
+if (aircraftGuideModal) {
+  aircraftGuideModal.addEventListener('click', (e) => {
+    if (e.target === aircraftGuideModal) aircraftGuideModal.classList.remove('open');
+  });
+}
+
+if (acFilterTabs) {
+  acFilterTabs.addEventListener('click', (e) => {
+    const btn = e.target.closest('.ac-tab-btn');
+    if (!btn) return;
+    const filter = btn.dataset.acFilter;
+    acFilterTabs.querySelectorAll('.ac-tab-btn').forEach((b) => b.classList.remove('active'));
+    btn.classList.add('active');
+
+    acGuideList.querySelectorAll('.ac-guide-card').forEach((card) => {
+      const show = filter === 'ALL' || card.dataset.acCard === filter;
+      card.style.display = show ? 'flex' : 'none';
+      card.classList.toggle('highlight-ac', filter !== 'ALL' && show);
+    });
+  });
+}
 
 itemModal.addEventListener('click', (e) => {
   if (e.target === itemModal) closeModal();

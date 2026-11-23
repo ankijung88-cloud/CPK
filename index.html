@@ -22,8 +22,11 @@
           <span class="app-title-badge">ICN · UPS</span>
         </h1>
         <div class="top-actions">
+          <button type="button" class="icon-btn" id="aircraftGuideBtn" title="기종(744, 748, 767) 의미 및 ULD 탑재 안내">
+            ✈️ 기종 안내
+          </button>
           <button type="button" class="icon-btn" id="typeDictBtn" style="display: none;" title="박스 타입별 현장명칭 관리">
-            🏷️ 타입·현장명칭 표
+            🏷️ 타입·현장명칭
           </button>
           <a
             href="https://www.airport.kr/ap_ko/876/subview.do"
@@ -34,7 +37,7 @@
             style="display: none; text-decoration: none;"
             title="인천공항 공식 화물운항정보 새창"
           >
-            🏢 공항 공식웹
+            🏢 공항웹
           </a>
           <button type="button" class="icon-btn" id="resetDataBtn" title="초기 데이터로 복원">
             초기화
@@ -145,7 +148,7 @@
     <div class="wb-header" id="flightBoardHeader" style="display: none;">
       <div>SPOT</div>
       <div>FLT/NO</div>
-      <div>기종</div>
+      <div class="wb-header-ac" id="wbHeaderAcBtn" title="클릭하여 기종(744·748·767) 상세 설명 보기">기종 ⓘ</div>
       <div>STA/ATA</div>
       <div>STD/ATD</div>
       <div>ORIGIN/DEST</div>
@@ -522,6 +525,96 @@
           <button type="submit" class="btn-save">현황판에 저장하기</button>
         </div>
       </form>
+    </div>
+  </div>
+
+  <!-- [모달 6] 항공기 기종(744 · 748 · 767) 의미 및 ULD 탑재 가이드 모달 -->
+  <div class="modal-backdrop" id="aircraftGuideModal" role="dialog" aria-modal="true" aria-labelledby="aircraftGuideModalTitle">
+    <div class="modal-sheet modal-sheet-scroll">
+      <div class="modal-header">
+        <h2 class="modal-title" id="aircraftGuideModalTitle">✈️ 항공기 기종(744 · 748 · 767) 상세 안내</h2>
+        <button type="button" class="modal-close" id="closeAircraftGuideModalBtn" aria-label="닫기">✕</button>
+      </div>
+
+      <p class="dict-guide">
+        현장 현황판의 <strong>기종 코드(748, 744, 767)</strong> 의미와 기종별 <strong>ULD 컨테이너 탑재 위치·주의사항</strong>입니다.
+      </p>
+
+      <!-- 기종 빠른 선택 탭 -->
+      <div class="ac-filter-tabs" id="acFilterTabs">
+        <button type="button" class="ac-tab-btn active" data-ac-filter="ALL">전체 비교</button>
+        <button type="button" class="ac-tab-btn" data-ac-filter="748">748 (747-8F)</button>
+        <button type="button" class="ac-tab-btn" data-ac-filter="744">744 (747-400F)</button>
+        <button type="button" class="ac-tab-btn" data-ac-filter="767">767 (767-300F)</button>
+      </div>
+
+      <div class="ac-guide-list" id="acGuideList">
+        <!-- 748 카드 -->
+        <div class="ac-guide-card" data-ac-card="748">
+          <div class="ac-card-header">
+            <span class="ac-code-badge ac-748">748</span>
+            <div class="ac-title-box">
+              <div class="ac-full-name">보잉 747-8F (Boeing 747-8 Freighter)</div>
+              <div class="ac-sub-name">현장/매뉴얼 호칭: <strong>747-800</strong> (747-8 계열 초대형 신형 화물기)</div>
+            </div>
+          </div>
+          <ul class="ac-desc-list">
+            <li><strong>의미:</strong> <code>74</code>7-<code>8</code>00 계열 화물기의 약칭으로, <strong>744</strong>의 후속 차세대 초대형 화물기입니다.</li>
+            <li><strong>특징:</strong> <strong>744</strong>보다 동체 길이가 <strong>약 5.6m 더 길어</strong> 컨테이너 탑재 포지션(POS)과 적재 중량이 더 큽니다.</li>
+          </ul>
+          <div class="ac-warn-box">
+            🚨 <strong>[필수 주의사항] L9 (AAZ) 컨테이너:</strong><br />
+            <strong>747-800 (748) 기종의 기수 앞쪽 1, 2, 3 POS 탑재 절대 안됨!</strong> (매뉴얼 3.2.2 기준)
+          </div>
+          <div class="ac-deck-box">
+            <div><strong>Main Deck (상부):</strong> <code>A1(AAD)</code>, <code>A2(AAY)</code>, <code>M1(AMJ)</code>, <code>M1H(AMD)</code>, <code>L9(AAP)</code>, <code>L9(AAZ - 1,2,3 POS 제외)</code></div>
+            <div><strong>Lower Deck (하부):</strong> <code>L9(AMP · AAZ · AAP)</code>, <code>L11(ALP)</code></div>
+          </div>
+        </div>
+
+        <!-- 744 카드 -->
+        <div class="ac-guide-card" data-ac-card="744">
+          <div class="ac-card-header">
+            <span class="ac-code-badge ac-744">744</span>
+            <div class="ac-title-box">
+              <div class="ac-full-name">보잉 747-400F (Boeing 747-400 Freighter)</div>
+              <div class="ac-sub-name">현장/매뉴얼 호칭: <strong>747</strong> (표준 대형 점보 화물기)</div>
+            </div>
+          </div>
+          <ul class="ac-desc-list">
+            <li><strong>의미:</strong> 보잉 <code>74</code>7-<code>4</code>00 계열 화물기의 약칭(<code>B744</code>)입니다.</li>
+            <li><strong>특징:</strong> Main Deck(상부 화물칸)와 Lower Deck(하부 화물칸) 전 포지션에 대형 ULD를 표준 탑재할 수 있습니다.</li>
+          </ul>
+          <div class="ac-deck-box">
+            <div><strong>Main Deck (상부):</strong> <code>A1(AAD)</code>, <code>A2(AAY)</code>, <code>M1(AMJ)</code>, <code>M1H(AMD)</code>, <code>L9(AAZ · AAP)</code></div>
+            <div><strong>Lower Deck (하부):</strong> <code>L9(AMP · AAZ · AAP)</code>, <code>L11(ALP)</code></div>
+          </div>
+        </div>
+
+        <!-- 767 카드 -->
+        <div class="ac-guide-card" data-ac-card="767">
+          <div class="ac-card-header">
+            <span class="ac-code-badge ac-767">767</span>
+            <div class="ac-title-box">
+              <div class="ac-full-name">보잉 767-300F (Boeing 767-300 Freighter)</div>
+              <div class="ac-sub-name">현장/매뉴얼 호칭: <strong>767</strong> (중형 화물기)</div>
+            </div>
+          </div>
+          <ul class="ac-desc-list">
+            <li><strong>의미:</strong> 보잉 <code>767-300</code> 계열 중형 화물기로, <strong>744 · 748</strong>보다 동체 폭과 천장 높이가 작습니다.</li>
+          </ul>
+          <div class="ac-warn-box">
+            ⚠️ <strong>[767 조업 주의사항]</strong><br />
+            • <strong>M1H (AMD, 높이 118")</strong> 및 <strong>L9 (AAP) Main Deck 탑재 불가</strong> (747 Main Deck 전용)<br />
+            • <strong>M1 (AMJ)</strong> 및 <strong>L9 (AMP)</strong>는 Main Deck 탑재 시 <strong>Center Load (중앙열 적재)</strong> 전용<br />
+            • <strong>L11 (ALP)</strong>: 매뉴얼 특이사항 <strong>*767 = 363, 366</strong> 참고
+          </div>
+          <div class="ac-deck-box">
+            <div><strong>Main Deck (상부):</strong> <code>A1(AAD)</code>, <code>A2(AAY)</code>, <code>M1(AMJ - Center Load)</code>, <code>L9(AMP - Center Load)</code>, <code>L9(AAZ)</code></div>
+            <div><strong>Lower Deck (하부):</strong> <code>L9(AMP · AAZ · AAP)</code></div>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 
