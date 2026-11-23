@@ -112,16 +112,16 @@
 
         <nav class="region-tabs flight-dir-tabs" id="flightDirTabs" aria-label="출도착 필터">
           <button type="button" class="tab-btn active" data-flight-dir="ALL">
-            전체 <span class="count" id="fcount-ALL">0</span>
+            전체 보드 <span class="count" id="fcount-ALL">0</span>
           </button>
           <button type="button" class="tab-btn" data-flight-dir="ARR">
-            🛬 도착(ARR) <span class="count" id="fcount-ARR">0</span>
+            STA(도착) <span class="count" id="fcount-ARR">0</span>
           </button>
           <button type="button" class="tab-btn" data-flight-dir="DEP">
-            🛫 출발(DEP) <span class="count" id="fcount-DEP">0</span>
+            STD(출발) <span class="count" id="fcount-DEP">0</span>
           </button>
           <button type="button" class="tab-btn" data-flight-dir="SPOT">
-            📍 스팟배정 <span class="count" id="fcount-SPOT">0</span>
+            스팟배정 <span class="count" id="fcount-SPOT">0</span>
           </button>
         </nav>
       </div>
@@ -139,6 +139,16 @@
       <div>SLIC</div>
       <div>DEST (목적지)</div>
       <div></div>
+    </div>
+
+    <!-- [모드 3] 현장 조업 현황판 (화이트보드 6열 헤더: SPOT | FLT/NO | 기종 | STA/ATA | STD/ATD | ORIGIN/DEST) -->
+    <div class="wb-header" id="flightBoardHeader" style="display: none;">
+      <div>SPOT</div>
+      <div>FLT/NO</div>
+      <div>기종</div>
+      <div>STA/ATA</div>
+      <div>STD/ATD</div>
+      <div>ORIGIN/DEST</div>
     </div>
 
     <!-- 검색 결과 리스트 (목적지 코드 & ULD 컨테이너 & 실시간 항공편 공용 영역) -->
@@ -390,141 +400,126 @@
     </div>
   </div>
 
-  <!-- [모달 5] 항공편 스팟·시간·현장메모 추가 / 수정 / 삭제 모달 -->
+  <!-- [모달 5] 현장 화이트보드 형식 (SPOT | FLT/NO | 기종 | STA/ATA | STD/ATD | ORIGIN/DEST) 추가·수정 모달 -->
   <div class="modal-backdrop" id="flightModal" role="dialog" aria-modal="true" aria-labelledby="flightModalTitle">
     <div class="modal-sheet modal-sheet-scroll">
       <div class="modal-header">
-        <h2 class="modal-title" id="flightModalTitle">항공편 및 스팟 정보 등록/수정</h2>
+        <h2 class="modal-title" id="flightModalTitle">항공편 현황판 (SPOT · 편명) 등록/수정</h2>
         <button type="button" class="modal-close" id="closeFlightModalBtn" aria-label="닫기">✕</button>
       </div>
 
       <form id="flightForm">
-        <div class="form-group">
-          <label class="form-label">출·도착 구분 (DIRECTION)</label>
-          <div class="region-radio-group" style="grid-template-columns: 1fr 1fr;">
-            <label class="region-option">
-              <input type="radio" name="flightDir" value="ARR" checked />
-              <span>🛬 도착편 (ARR)</span>
-            </label>
-            <label class="region-option">
-              <input type="radio" name="flightDir" value="DEP" />
-              <span>🛫 출발편 (DEP)</span>
-            </label>
-          </div>
-        </div>
-
-        <div class="form-row">
-          <div class="form-group">
-            <label class="form-label" for="flightNoInput">편명 (필수)</label>
-            <input
-              type="text"
-              id="flightNoInput"
-              class="form-input uppercase"
-              placeholder="예: 5X011, 5X174"
-              required
-            />
-          </div>
-          <div class="form-group">
-            <label class="form-label" for="flightAirlineInput">항공사명</label>
-            <input
-              type="text"
-              id="flightAirlineInput"
-              class="form-input"
-              placeholder="예: 유피에스항공"
-            />
-          </div>
-        </div>
-
-        <div class="form-row" style="grid-template-columns: 1fr 1fr 1fr;">
+        <!-- 1행: SPOT / FLT/NO / 기종 -->
+        <div class="form-row" style="grid-template-columns: 90px 1fr 90px;">
           <div class="form-group">
             <label class="form-label" for="flightSpotInput">
-              주기장/스팟 <span class="label-highlight">(SPOT)</span>
+              SPOT <span class="label-highlight">(주기장)</span>
             </label>
             <input
               type="text"
               id="flightSpotInput"
               class="form-input input-highlight uppercase"
-              placeholder="예: 632"
-            />
-          </div>
-          <div class="form-group">
-            <label class="form-label" for="flightTimeInput">변경/실제시간</label>
-            <input
-              type="text"
-              id="flightTimeInput"
-              class="form-input"
-              placeholder="예: 09:30"
+              placeholder="예: 631"
               required
             />
           </div>
           <div class="form-group">
-            <label class="form-label" for="flightSchedInput">계획시간</label>
+            <label class="form-label" for="flightNoInput">
+              FLT/NO <span class="label-sub">(도착/출발 편명)</span>
+            </label>
             <input
               type="text"
-              id="flightSchedInput"
-              class="form-input"
-              placeholder="예: 08:00"
-            />
-          </div>
-        </div>
-
-        <div class="form-row" style="grid-template-columns: 1fr 1fr;">
-          <div class="form-group">
-            <label class="form-label" for="flightLocationInput">출발/목적지 (3CODE)</label>
-            <input
-              type="text"
-              id="flightLocationInput"
-              class="form-input"
-              placeholder="예: 앵커리지(ANC)"
+              id="flightNoInput"
+              class="form-input uppercase"
+              placeholder="예: 37/174, 195"
               required
             />
           </div>
           <div class="form-group">
-            <label class="form-label" for="flightViaInput">경유지 (선택)</label>
+            <label class="form-label" for="flightAircraftInput">
+              기종 <span class="label-sub">(A/C)</span>
+            </label>
             <input
               type="text"
-              id="flightViaInput"
-              class="form-input"
-              placeholder="예: 정저우(CGO)"
+              id="flightAircraftInput"
+              class="form-input uppercase"
+              placeholder="767, 748"
             />
           </div>
         </div>
 
-        <div class="form-row" style="grid-template-columns: 1fr 1fr;">
+        <!-- 2행: STA/ATA | STD/ATD | ORIGIN/DEST -->
+        <div class="form-row" style="grid-template-columns: 1fr 1fr 1.2fr;">
           <div class="form-group">
-            <label class="form-label" for="flightTerminalInput">터미널</label>
+            <label class="form-label" for="flightStaInput">STA/ATA (도착)</label>
             <input
               type="text"
-              id="flightTerminalInput"
-              class="form-input"
-              placeholder="예: Cargo(S)"
-              value="Cargo(S)"
+              id="flightStaInput"
+              class="form-input uppercase"
+              placeholder="예: 0435"
             />
           </div>
           <div class="form-group">
-            <label class="form-label" for="flightStateInput">운항현황</label>
+            <label class="form-label" for="flightStdInput">STD/ATD (출발)</label>
+            <input
+              type="text"
+              id="flightStdInput"
+              class="form-input uppercase"
+              placeholder="예: 1205"
+            />
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="flightOriginDestInput">ORIGIN/DEST</label>
+            <input
+              type="text"
+              id="flightOriginDestInput"
+              class="form-input input-highlight uppercase"
+              placeholder="예: SYD/CGO, CRK"
+              required
+            />
+          </div>
+        </div>
+
+        <!-- 3행: 항공사 및 운항상태/메모 -->
+        <div class="form-row" style="grid-template-columns: 1fr 1fr;">
+          <div class="form-group">
+            <label class="form-label" for="flightAirlineInput">항공사</label>
+            <input
+              type="text"
+              id="flightAirlineInput"
+              class="form-input"
+              placeholder="예: UPS (유피에스항공)"
+              value="유피에스항공"
+            />
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="flightStateInput">실시간 상태 / 비고</label>
             <input
               type="text"
               id="flightStateInput"
               class="form-input"
-              placeholder="예: 도착, 출발, 지연, 예정"
+              placeholder="예: 정상, 지연(0930), 도착완료"
             />
           </div>
         </div>
 
         <div class="form-group">
-          <label class="form-label" for="flightMemoInput">현장 작업 메모 (선택)</label>
+          <label class="form-label" for="flightMemoInput">현장 검수 / 안전 / 조업 메모 (선택)</label>
           <input
             type="text"
             id="flightMemoInput"
             class="form-input"
-            placeholder="예: L9 6개, A1 4개 조업 예정"
+            placeholder="예: L9 6개, A1 4개 / 검수자 및 특이사항"
           />
         </div>
 
+        <p class="field-sync-notice">
+          💡 현장 현황판 형식(<strong>SPOT | FLT/NO | 기종 | STA/ATA | STD/ATD | ORIGIN/DEST</strong>) 그대로 입력·저장되며, 입력한 <strong>ORIGIN/DEST(예: SYD/CGO, PVG/CGN, CRK)</strong>의 목적지명과 <strong>SLIC 코드</strong>가 하단에 자동 연결됩니다.
+        </p>
+
         <div class="modal-actions">
           <button type="button" class="btn-delete" id="deleteFlightBtn" style="display: none;">삭제</button>
-          <button type="submit" class="btn-save">저장하기</button>
+          <button type="submit" class="btn-save">현황판에 저장하기</button>
         </div>
       </form>
     </div>

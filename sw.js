@@ -1,4 +1,4 @@
-const CACHE_NAME = 'cpk-lookup-v4';
+const CACHE_NAME = 'cpk-lookup-v5';
 const ASSETS = [
   './',
   './index.html',

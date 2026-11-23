@@ -678,8 +678,217 @@ body {
   pointer-events: none;
 }
 
-.flight-dir-tabs {
-  margin-top: 0;
+/* ==========================================
+   현장 화이트보드 조업 현황판 (SPOT | FLT/NO | 기종 | STA/ATA | STD/ATD | ORIGIN/DEST)
+   ========================================== */
+.wb-header {
+  display: grid;
+  grid-template-columns: 48px 1.25fr 44px 0.95fr 0.95fr 1.2fr;
+  align-items: center;
+  margin: 4px 12px 6px;
+  background: #2e7d5b;
+  color: #ffffff;
+  border-radius: 10px;
+  border: 1.5px solid #1f5c42;
+  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.12);
+  overflow: hidden;
+}
+
+.wb-header > div {
+  padding: 9px 2px;
+  text-align: center;
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: -0.01em;
+  border-right: 1px solid rgba(255, 255, 255, 0.22);
+}
+
+.wb-header > div:last-child {
+  border-right: none;
+}
+
+.wb-row-card {
+  background: #ffffff;
+  border: 1.5px solid #cbd5e1;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+  cursor: pointer;
+  transition: transform 0.1s, border-color 0.15s;
+}
+
+.wb-row-card.is-ups {
+  border-left: 4px solid #2e7d5b;
+}
+
+.wb-row-card:active {
+  transform: scale(0.99);
+  background: #f8fafc;
+}
+
+.wb-grid {
+  display: grid;
+  grid-template-columns: 48px 1.25fr 44px 0.95fr 0.95fr 1.2fr;
+  align-items: stretch;
+  min-height: 54px;
+}
+
+.wb-cell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 3px;
+  text-align: center;
+  border-right: 1px solid #e2e8f0;
+  font-family: "SF Mono", "Roboto Mono", Consolas, monospace;
+}
+
+.wb-cell:last-child {
+  border-right: none;
+}
+
+.wb-spot {
+  font-size: 1.08rem;
+  font-weight: 900;
+  color: #0f172a;
+  background: #f8fafc;
+}
+
+.wb-spot.spot-empty {
+  font-size: 0.75rem;
+  color: #94a3b8;
+}
+
+.wb-flt {
+  font-size: 0.98rem;
+  font-weight: 900;
+  color: #1d4ed8;
+  word-break: break-all;
+  line-height: 1.2;
+}
+
+.wb-flt-sub {
+  font-size: 0.64rem;
+  font-weight: 700;
+  color: #64748b;
+  margin-top: 2px;
+  font-family: -apple-system, BlinkMacSystemFont, "Pretendard", sans-serif;
+}
+
+.wb-ac {
+  font-size: 0.94rem;
+  font-weight: 800;
+  color: #334155;
+  background: #f8fafc;
+}
+
+.wb-time {
+  font-size: 0.96rem;
+  font-weight: 800;
+  color: #0f172a;
+  line-height: 1.15;
+}
+
+.wb-time-sub {
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: #64748b;
+  margin-top: 2px;
+}
+
+.wb-time-sub.delay {
+  color: #dc2626;
+}
+
+.wb-time-sub.done {
+  color: #15803d;
+}
+
+.wb-route {
+  font-size: 0.94rem;
+  font-weight: 900;
+  color: #0f172a;
+  word-break: break-all;
+  line-height: 1.2;
+}
+
+/* 화이트보드 각 행 하단 보조 정보바 (SLIC 코드·목적지명·실시간 상태·항적 링크) */
+.wb-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  padding: 6px 10px;
+  background: #f8fafc;
+  border-top: 1px dashed #e2e8f0;
+  font-size: 0.74rem;
+}
+
+.wb-footer-left {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 5px;
+  min-width: 0;
+}
+
+.wb-slic-tag {
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  color: #1e40af;
+  font-weight: 800;
+  padding: 1px 6px;
+  border-radius: 5px;
+  font-size: 0.71rem;
+}
+
+.wb-state-tag {
+  font-weight: 800;
+  padding: 1px 6px;
+  border-radius: 5px;
+  font-size: 0.7rem;
+}
+
+.wb-state-tag.done {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.wb-state-tag.delay {
+  background: #fef2f2;
+  color: #dc2626;
+}
+
+.wb-state-tag.sched {
+  background: #e2e8f0;
+  color: #334155;
+}
+
+.wb-memo-tag {
+  color: #0f172a;
+  font-weight: 700;
+}
+
+@media (max-width: 370px) {
+  .wb-header,
+  .wb-grid {
+    grid-template-columns: 42px 1.2fr 38px 0.9fr 0.9fr 1.15fr;
+  }
+  .wb-header > div {
+    font-size: 0.66rem;
+  }
+  .wb-spot {
+    font-size: 0.96rem;
+  }
+  .wb-flt,
+  .wb-time,
+  .wb-route {
+    font-size: 0.86rem;
+  }
+  .wb-ac {
+    font-size: 0.84rem;
+  }
 }
 
 /* 항공편 카드 */

@@ -172,251 +172,149 @@ const INITIAL_ULD_DATA = [
   }
 ];
 
-// 실시간 항공편 저장 키
-const FLIGHT_STORAGE_KEY = 'cpk_flight_items_v1';
-const FLIGHT_LAST_SYNC_KEY = 'cpk_flight_last_sync_v1';
+// 실시간 항공편 (현장 화이트보드 조업 현황판 형식) 저장 키
+const FLIGHT_STORAGE_KEY = 'cpk_flight_board_v2';
+const FLIGHT_LAST_SYNC_KEY = 'cpk_flight_last_sync_v2';
 
-// 인천공항(ICN) UPS 화물기(5X) 및 주요 화물기 실시간 기준 초기 데이터
+// UPS 편명별 기본 투입 기종 및 기본 노선 매핑 사전
+const UPS_FLIGHT_PRESETS = {
+  '195': { aircraft: '767', dest: 'CRK' },
+  '196': { aircraft: '767', origin: 'NRT' },
+  '6011': { aircraft: '744', origin: 'PVG', dest: 'CGN' },
+  '011': { aircraft: '744', origin: 'PVG', dest: 'CGN' },
+  '11': { aircraft: '744', origin: 'PVG', dest: 'CGN' },
+  '37': { aircraft: '748', origin: 'SYD' },
+  '037': { aircraft: '748', origin: 'SYD' },
+  '174': { aircraft: '748', dest: 'CGO' },
+  '173': { aircraft: '748', origin: 'CGO' },
+  '99': { aircraft: '748', dest: 'ANC' },
+  '099': { aircraft: '748', dest: 'ANC' },
+  '64': { aircraft: '748', origin: 'SDF', dest: 'ANC' },
+  '064': { aircraft: '748', origin: 'SDF', dest: 'ANC' },
+  '26': { aircraft: '748', origin: 'ANC', dest: 'SDF' },
+  '026': { aircraft: '748', origin: 'ANC', dest: 'SDF' },
+  '58': { aircraft: '748', origin: 'ANC' },
+  '058': { aircraft: '748', origin: 'ANC' },
+  '33': { aircraft: '748', origin: 'SDF' },
+  '033': { aircraft: '748', origin: 'SDF' },
+  '35': { aircraft: '748', origin: 'SDF' },
+  '035': { aircraft: '748', origin: 'SDF' }
+};
+
+// 업로드해주신 현장 화이트보드(SPOT | FLT/NO | 기종 | STA/ATA | STD/ATD | ORIGIN/DEST) 기준 초기 데이터
 const INITIAL_FLIGHT_DATA = [
-  // UPS (5X) 인천공항 주요 도착/출발편 (실제 인천공항 화물청사 Cargo(S) 스팟 629~636 기준)
   {
-    id: 'flt-arr-5x011',
-    dir: 'ARR',
-    flightNo: '5X011',
-    airline: '유피에스항공',
-    actualTime: '02:32',
-    schedTime: '01:41',
-    location: '스탠디포드필드(루이스빌)(SDF)',
-    via: '쾰른(CGN)',
-    terminal: 'Cargo(S)',
-    spot: '632',
-    state: '도착',
-    memo: 'UPS 유럽·미주 연결편'
-  },
-  {
-    id: 'flt-arr-5x037',
-    dir: 'ARR',
-    flightNo: '5X037',
-    airline: '유피에스항공',
-    actualTime: '04:52',
-    schedTime: '04:35',
-    location: '스탠디포드필드(루이스빌)(SDF)',
-    via: '호놀룰루(HNL)',
-    terminal: 'Cargo(S)',
-    spot: '636',
-    state: '도착',
-    memo: ''
-  },
-  {
-    id: 'flt-arr-5x196',
-    dir: 'ARR',
-    flightNo: '5X196',
-    airline: '유피에스항공',
-    actualTime: '08:36',
-    schedTime: '07:55',
-    location: '앵커리지(ANC)',
-    via: '도쿄/나리타(NRT)',
-    terminal: 'Cargo(S)',
+    id: 'wb-631-195',
     spot: '631',
-    state: '도착',
-    memo: ''
+    fltNo: '195',
+    aircraft: '767',
+    sta: '',
+    ataSub: '',
+    std: '2200',
+    atdSub: '21:45 예정',
+    originDest: 'CRK',
+    airline: '유피에스항공',
+    state: '출발예정',
+    memo: '5X195 클락(CRK) 출발편'
   },
   {
-    id: 'flt-dep-5x011',
-    dir: 'DEP',
-    flightNo: '5X011',
-    airline: '유피에스항공',
-    actualTime: '09:30',
-    schedTime: '08:00',
-    location: '스탠디포드필드(루이스빌)(SDF)',
-    via: '쾰른(CGN)',
-    terminal: 'Cargo(S)',
+    id: 'wb-632-6011',
     spot: '632',
-    state: '지연',
-    memo: ''
+    fltNo: '6011/6011',
+    aircraft: '744',
+    sta: '0141',
+    ataSub: 'ATA 02:32',
+    std: '0800',
+    atdSub: 'ATD 09:30(지연)',
+    originDest: 'PVG/CGN',
+    airline: '유피에스항공',
+    state: '도착·출발지연',
+    memo: '5X011 푸동(PVG) ➔ 인천 ➔ 쾰른(CGN)'
   },
   {
-    id: 'flt-dep-5x174',
-    dir: 'DEP',
-    flightNo: '5X174',
-    airline: '유피에스항공',
-    actualTime: '12:05',
-    schedTime: '12:05',
-    location: '앵커리지(ANC)',
-    via: '정저우(CGO)',
-    terminal: 'Cargo(S)',
+    id: 'wb-636-37-174',
     spot: '636',
-    state: '예정',
-    memo: ''
+    fltNo: '37/174',
+    aircraft: '748',
+    sta: '0435',
+    ataSub: 'ATA 04:52',
+    std: '1205',
+    atdSub: '정시예정',
+    originDest: 'SYD/CGO',
+    airline: '유피에스항공',
+    state: '도착완료',
+    memo: '5X037 시드니(SYD)發 / 5X174 정저우(CGO)行'
   },
   {
-    id: 'flt-arr-5x064',
-    dir: 'ARR',
-    flightNo: '5X064',
-    airline: '유피에스항공',
-    actualTime: '12:54',
-    schedTime: '11:45',
-    location: '스탠디포드필드(루이스빌)(SDF)',
-    via: '앵커리지(ANC)',
-    terminal: 'Cargo(S)',
-    spot: '630',
-    state: '예정',
-    memo: ''
-  },
-  {
-    id: 'flt-dep-5x064',
-    dir: 'DEP',
-    flightNo: '5X064',
-    airline: '유피에스항공',
-    actualTime: '14:29',
-    schedTime: '13:30',
-    location: '앵커리지(ANC)',
-    via: '',
-    terminal: 'Cargo(S)',
-    spot: '630',
-    state: '예정',
-    memo: ''
-  },
-  {
-    id: 'flt-arr-5x058',
-    dir: 'ARR',
-    flightNo: '5X058',
-    airline: '유피에스항공',
-    actualTime: '14:57',
-    schedTime: '15:05',
-    location: '앵커리지(ANC)',
-    via: '',
-    terminal: 'Cargo(S)',
-    spot: '630',
-    state: '예정',
-    memo: ''
-  },
-  {
-    id: 'flt-arr-5x173',
-    dir: 'ARR',
-    flightNo: '5X173',
-    airline: '유피에스항공',
-    actualTime: '19:50',
-    schedTime: '19:50',
-    location: '앵커리지(ANC)',
-    via: '도쿄/나리타(NRT)',
-    terminal: 'Cargo(S)',
+    id: 'wb-629-173-99',
     spot: '629',
-    state: '예정',
-    memo: ''
-  },
-  {
-    id: 'flt-dep-5x195',
-    dir: 'DEP',
-    flightNo: '5X195',
+    fltNo: '173/99',
+    aircraft: '748',
+    sta: '1955',
+    ataSub: '19:50 예정',
+    std: '2235',
+    atdSub: '정시예정',
+    originDest: 'CGO/ANC',
     airline: '유피에스항공',
-    actualTime: '21:45',
-    schedTime: '21:45',
-    location: '앵커리지(ANC)',
-    via: '클라크필드(CRK)',
-    terminal: 'Cargo(S)',
-    spot: '631',
-    state: '예정',
-    memo: ''
+    state: '도착예정',
+    memo: '5X173 도착 / 5X099 앵커리지(ANC) 출발'
   },
   {
-    id: 'flt-dep-5x099',
-    dir: 'DEP',
-    flightNo: '5X099',
+    id: 'wb-630-64',
+    spot: '630',
+    fltNo: '64/64',
+    aircraft: '748',
+    sta: '1145',
+    ataSub: 'ETA 12:54',
+    std: '1330',
+    atdSub: 'ETD 14:29',
+    originDest: 'SDF/ANC',
     airline: '유피에스항공',
-    actualTime: '22:35',
-    schedTime: '22:35',
-    location: '앵커리지(ANC)',
-    via: '',
-    terminal: 'Cargo(S)',
-    spot: '629',
     state: '예정',
-    memo: ''
+    memo: '5X064 루이스빌(SDF) ➔ 앵커리지(ANC)'
   },
-  // 타 항공사 인천공항 주요 화물편 샘플 (전체 화물기 보기용)
+  // 타 항공사 화물기 샘플 (전체 화물기 전환 시 함께 표시)
   {
-    id: 'flt-dep-5y8531',
-    dir: 'DEP',
-    flightNo: '5Y8531',
-    airline: '아틀라스항공',
-    actualTime: '00:14',
-    schedTime: '00:20',
-    location: '시카고/오헤어(ORD)',
-    via: '앵커리지(ANC)',
-    terminal: 'Cargo(N)',
+    id: 'wb-648-5y8531',
     spot: '648',
-    state: '출발',
-    memo: ''
-  },
-  {
-    id: 'flt-dep-lh8383',
-    dir: 'DEP',
-    flightNo: 'LH8383',
-    airline: '루프트한자 독일항공',
-    actualTime: '00:19',
-    schedTime: '00:20',
-    location: '프랑크푸르트(FRA)',
-    via: '',
-    terminal: 'Cargo(S)',
-    spot: '627',
-    state: '출발',
-    memo: ''
-  },
-  {
-    id: 'flt-arr-3s580',
-    dir: 'ARR',
-    flightNo: '3S580',
-    airline: '에어로로직',
-    actualTime: '00:49',
-    schedTime: '01:25',
-    location: '라이프치히(LEJ)',
-    via: '',
-    terminal: 'Cargo(N)',
-    spot: '643',
-    state: '도착',
-    memo: ''
-  },
-  {
-    id: 'flt-arr-5y512',
-    dir: 'ARR',
-    flightNo: '5Y512',
+    fltNo: '5Y8531',
+    aircraft: '744',
+    sta: '',
+    ataSub: '',
+    std: '0020',
+    atdSub: 'ATD 00:14',
+    originDest: 'ANC/ORD',
     airline: '아틀라스항공',
-    actualTime: '01:38',
-    schedTime: '00:25',
-    location: '로스앤젤레스(LAX)',
-    via: '',
-    terminal: 'Cargo(N)',
-    spot: '647',
-    state: '도착',
-    memo: ''
-  },
-  {
-    id: 'flt-arr-kj247',
-    dir: 'ARR',
-    flightNo: 'KJ247',
-    airline: '에어제타',
-    actualTime: '03:44',
-    schedTime: '02:50',
-    location: '애틀랜타(ATL)',
-    via: '앵커리지(ANC)',
-    terminal: 'Cargo(S)',
-    spot: '621',
-    state: '도착',
-    memo: ''
-  },
-  {
-    id: 'flt-dep-ke8313',
-    dir: 'DEP',
-    flightNo: 'KE8313',
-    airline: '대한항공',
-    actualTime: '09:06',
-    schedTime: '08:10',
-    location: '홍콩(HKG)',
-    via: '',
-    terminal: 'Cargo(N)',
-    spot: '612',
     state: '출발',
-    memo: ''
+    memo: 'Cargo(N)'
+  },
+  {
+    id: 'wb-627-lh8383',
+    spot: '627',
+    fltNo: 'LH8383',
+    aircraft: '77F',
+    sta: '',
+    ataSub: '',
+    std: '0020',
+    atdSub: 'ATD 00:19',
+    originDest: 'FRA',
+    airline: '루프트한자 독일항공',
+    state: '출발',
+    memo: 'Cargo(S)'
+  },
+  {
+    id: 'wb-621-kj247',
+    spot: '621',
+    fltNo: 'KJ247',
+    aircraft: '744',
+    sta: '0250',
+    ataSub: 'ATA 03:44',
+    std: '',
+    atdSub: '',
+    originDest: 'ANC/ATL',
+    airline: '에어제타',
+    state: '도착',
+    memo: 'Cargo(S)'
   }
 ];
 
@@ -447,12 +345,15 @@ function extractBoxType(fullName) {
   return match ? match[1] : '';
 }
 
-// UPS 항공편 여부 판별
+// UPS 항공편 여부 판별 (5X, UPS, 또는 화이트보드 숫자형 편명 195, 37/174, 6011/6011 등)
 function isUpsFlight(flt) {
   if (!flt) return false;
-  const no = (flt.flightNo || '').trim().toUpperCase();
+  const no = (flt.fltNo || flt.flightNo || '').trim().toUpperCase();
   const air = (flt.airline || '').trim().toUpperCase();
-  return no.startsWith('5X') || no.startsWith('UPS') || air.includes('유피에스') || air.includes('UPS');
+  if (air.includes('유피에스') || air.includes('UPS')) return true;
+  if (no.startsWith('5X') || no.startsWith('UPS')) return true;
+  if (/^\d+(\/\d+)?$/.test(no)) return true;
+  return false;
 }
 
 // 상태 관리
@@ -462,7 +363,6 @@ let uldItems = [];
 let uldTypeDict = {};
 let flightItems = [];
 let flightLastSync = '';
-let hasAutoSyncedOnce = false;
 
 let currentRegion = 'ALL';
 let currentUldFilter = 'ALL';
@@ -489,6 +389,7 @@ const flightDateInput = document.getElementById('flightDateInput');
 const liveSyncBtn = document.getElementById('liveSyncBtn');
 const flightDirTabs = document.getElementById('flightDirTabs');
 const codeListHeader = document.getElementById('codeListHeader');
+const flightBoardHeader = document.getElementById('flightBoardHeader');
 const resultsList = document.getElementById('resultsList');
 const statusText = document.getElementById('statusText');
 const statusHint = document.getElementById('statusHint');
@@ -540,19 +441,18 @@ const closeLightboxBtn = document.getElementById('closeLightboxBtn');
 const lightboxImg = document.getElementById('lightboxImg');
 const lightboxCaption = document.getElementById('lightboxCaption');
 
-// 항공편 모달 요소
+// 항공편 화이트보드 모달 요소
 const flightModal = document.getElementById('flightModal');
 const flightModalTitle = document.getElementById('flightModalTitle');
 const closeFlightModalBtn = document.getElementById('closeFlightModalBtn');
 const flightForm = document.getElementById('flightForm');
-const flightNoInput = document.getElementById('flightNoInput');
-const flightAirlineInput = document.getElementById('flightAirlineInput');
 const flightSpotInput = document.getElementById('flightSpotInput');
-const flightTimeInput = document.getElementById('flightTimeInput');
-const flightSchedInput = document.getElementById('flightSchedInput');
-const flightLocationInput = document.getElementById('flightLocationInput');
-const flightViaInput = document.getElementById('flightViaInput');
-const flightTerminalInput = document.getElementById('flightTerminalInput');
+const flightNoInput = document.getElementById('flightNoInput');
+const flightAircraftInput = document.getElementById('flightAircraftInput');
+const flightStaInput = document.getElementById('flightStaInput');
+const flightStdInput = document.getElementById('flightStdInput');
+const flightOriginDestInput = document.getElementById('flightOriginDestInput');
+const flightAirlineInput = document.getElementById('flightAirlineInput');
 const flightStateInput = document.getElementById('flightStateInput');
 const flightMemoInput = document.getElementById('flightMemoInput');
 const deleteFlightBtn = document.getElementById('deleteFlightBtn');
@@ -631,13 +531,13 @@ function loadData() {
         flightItems = parsedFlight;
       }
     }
-    flightLastSync = localStorage.getItem(FLIGHT_LAST_SYNC_KEY) || '기본 내장 데이터';
+    flightLastSync = localStorage.getItem(FLIGHT_LAST_SYNC_KEY) || '현장 현황판 기준';
   } catch (e) {
     console.error('Failed to read Flight localStorage:', e);
   }
   if (!flightItems || flightItems.length === 0) {
     flightItems = JSON.parse(JSON.stringify(INITIAL_FLIGHT_DATA));
-    flightLastSync = '기본 스케줄 탑재 (실시간 갱신 가능)';
+    flightLastSync = '현장 현황판 기본 탑재';
     saveFlightData();
   }
 
@@ -700,60 +600,75 @@ function syncTypeFieldName(typeCode, fieldName) {
   }
 }
 
-// 항공편 노선/경유지에서 앱의 3CODE · SLIC 매칭 배지 자동 추출
-function getMatchingSlicChips(locationStr, viaStr) {
-  const combined = `${locationStr || ''} ${viaStr || ''}`;
+// 도시명 -> 3CODE 변환 헬퍼
+const CITY_TO_3CODE = {
+  루이스빌: 'SDF',
+  스탠디포드: 'SDF',
+  앵커리지: 'ANC',
+  쾰른: 'CGN',
+  정저우: 'CGO',
+  클라크: 'CRK',
+  클락: 'CRK',
+  나리타: 'NRT',
+  도쿄: 'NRT',
+  간사이: 'KIX',
+  오사카: 'KIX',
+  베이징: 'PEK',
+  타이베이: 'TPE',
+  타이페이: 'TPE',
+  싱가포르: 'SIN',
+  선전: 'SZX',
+  심천: 'SZX',
+  홍콩: 'HKG',
+  마닐라: 'MNL',
+  두바이: 'DXB',
+  방콕: 'BKK',
+  푸동: 'PVG',
+  상하이: 'PVG',
+  호치민: 'SGN',
+  호찌민: 'SGN',
+  시드니: 'SYD',
+  델리: 'DEL',
+  자카르타: 'CGK',
+  하노이: 'HAN',
+  프랑크푸르트: 'FRA',
+  프랑크프루트: 'FRA',
+  호놀룰루: 'HNL',
+  시카고: 'ORD',
+  로스앤젤레스: 'LAX',
+  로스엔젤레스: 'LAX',
+  뉴욕: 'JFK',
+  애틀랜타: 'ATL',
+  아틀란타: 'ATL',
+  댈러스: 'DFW',
+  휴스턴: 'IAH',
+  라이프치히: 'LEJ',
+  밀라노: 'MXP',
+  바쿠: 'GYD',
+  광저우: 'CAN'
+};
+
+function extract3CodeFromText(str) {
+  if (!str) return '';
+  const m = str.toUpperCase().match(/\(([A-Z]{3})\)/);
+  if (m) return m[1];
+  const m2 = str.toUpperCase().match(/\b([A-Z]{3})\b/);
+  if (m2) return m2[1];
+  for (const city of Object.keys(CITY_TO_3CODE)) {
+    if (str.includes(city)) return CITY_TO_3CODE[city];
+  }
+  return str.trim();
+}
+
+// ORIGIN/DEST 문자열(예: PVG/CGN, SYD/CGO, CRK)에서 앱의 3CODE · SLIC 매칭 배지 자동 추출
+function getMatchingSlicChips(originDestStr, memoStr) {
+  const combined = `${originDestStr || ''} ${memoStr || ''}`;
   if (!combined.trim()) return [];
 
   const matched = [];
   const seen = new Set();
 
-  // 도시명 별칭 보완 매핑
-  const cityToCodeMap = {
-    루이스빌: 'SDF',
-    스탠디포드: 'SDF',
-    앵커리지: 'ANC',
-    쾰른: 'CGN',
-    정저우: 'CGO',
-    클라크: 'CRK',
-    클락: 'CRK',
-    나리타: 'NRT',
-    도쿄: 'NRT',
-    간사이: 'KIX',
-    오사카: 'KIX',
-    베이징: 'PEK',
-    타이베이: 'TPE',
-    타이페이: 'TPE',
-    싱가포르: 'SIN',
-    선전: 'SZX',
-    심천: 'SZX',
-    홍콩: 'HKG',
-    마닐라: 'MNL',
-    두바이: 'DXB',
-    방콕: 'BKK',
-    푸동: 'PVG',
-    상하이: 'PVG',
-    호치민: 'SGN',
-    호찌민: 'SGN',
-    시드니: 'SYD',
-    델리: 'DEL',
-    자카르타: 'CGK',
-    하노이: 'HAN',
-    프랑크푸르트: 'FRA',
-    프랑크프루트: 'FRA',
-    호놀룰루: 'HNL',
-    시카고: 'ORD',
-    로스앤젤레스: 'LAX',
-    로스엔젤레스: 'LAX',
-    뉴욕: 'JFK',
-    애틀랜타: 'ATL',
-    아틀란타: 'ATL',
-    댈러스: 'DFW',
-    휴스턴: 'IAH'
-  };
-
-  // 1) 괄호 안 3CODE 추출 (예: (SDF), (ANC))
-  const codeMatches = combined.toUpperCase().match(/\b[A-Z]{3}\b/g) || [];
+  const codeMatches = (originDestStr || '').toUpperCase().match(/\b[A-Z]{3}\b/g) || [];
   codeMatches.forEach((c) => {
     const found = items.find((it) => it.code === c);
     if (found && !seen.has(found.code)) {
@@ -762,10 +677,9 @@ function getMatchingSlicChips(locationStr, viaStr) {
     }
   });
 
-  // 2) 한글 도시명으로 매칭
-  Object.keys(cityToCodeMap).forEach((city) => {
+  Object.keys(CITY_TO_3CODE).forEach((city) => {
     if (combined.includes(city)) {
-      const targetCode = cityToCodeMap[city];
+      const targetCode = CITY_TO_3CODE[city];
       const found = items.find((it) => it.code === targetCode);
       if (found && !seen.has(found.code)) {
         seen.add(found.code);
@@ -837,40 +751,38 @@ function matchesUldItem(item, query) {
   return fieldChosung.includes(q) || noteChosung.includes(q);
 }
 
-// 검색 매칭 검사 - 실시간 항공편
+// 검색 매칭 검사 - 현장 화이트보드 항공편
 function matchesFlightItem(item, query) {
   if (!query) return true;
   const q = query.trim().toLowerCase();
   if (!q) return true;
 
-  const flightNo = (item.flightNo || '').toLowerCase();
-  const airline = (item.airline || '').toLowerCase();
   const spot = (item.spot || '').toLowerCase();
-  const location = (item.location || '').toLowerCase();
-  const via = (item.via || '').toLowerCase();
-  const terminal = (item.terminal || '').toLowerCase();
+  const fltNo = (item.fltNo || '').toLowerCase();
+  const aircraft = (item.aircraft || '').toLowerCase();
+  const sta = (item.sta || '').toLowerCase();
+  const std = (item.std || '').toLowerCase();
+  const originDest = (item.originDest || '').toLowerCase();
+  const airline = (item.airline || '').toLowerCase();
   const state = (item.state || '').toLowerCase();
   const memo = (item.memo || '').toLowerCase();
-  const time = `${item.actualTime || ''} ${item.schedTime || ''}`.toLowerCase();
 
   if (
-    flightNo.includes(q) ||
-    airline.includes(q) ||
     spot.includes(q) ||
-    location.includes(q) ||
-    via.includes(q) ||
-    terminal.includes(q) ||
+    fltNo.includes(q) ||
+    aircraft.includes(q) ||
+    sta.includes(q) ||
+    std.includes(q) ||
+    originDest.includes(q) ||
+    airline.includes(q) ||
     state.includes(q) ||
-    memo.includes(q) ||
-    time.includes(q)
+    memo.includes(q)
   ) {
     return true;
   }
 
-  const locChosung = getChosung(location);
-  const viaChosung = getChosung(via);
-  const airChosung = getChosung(airline);
-  return locChosung.includes(q) || viaChosung.includes(q) || airChosung.includes(q);
+  const memoChosung = getChosung(memo);
+  return memoChosung.includes(q);
 }
 
 // 검색어 하이라이트 렌더링
@@ -960,7 +872,7 @@ function renderUldTypeTabs() {
   uldTypeTabs.innerHTML = html;
 }
 
-// 항공편 탭 카운트 업데이트
+// 항공편 화이트보드 탭 카운트 업데이트
 function updateFlightTabCounts() {
   const counts = { ALL: 0, ARR: 0, DEP: 0, SPOT: 0 };
 
@@ -969,8 +881,8 @@ function updateFlightTabCounts() {
       currentFlightAirlineFilter === 'ALL' || isUpsFlight(flt);
     if (airlineOk && matchesFlightItem(flt, searchQuery)) {
       counts.ALL++;
-      if (flt.dir === 'ARR') counts.ARR++;
-      if (flt.dir === 'DEP') counts.DEP++;
+      if (flt.sta && flt.sta.trim()) counts.ARR++;
+      if (flt.std && flt.std.trim()) counts.DEP++;
       if (flt.spot && flt.spot.trim()) counts.SPOT++;
     }
   });
@@ -1150,47 +1062,37 @@ function renderUldMode() {
     .join('');
 }
 
-// [모드 3] 실시간 항공편 (UPS · 인천공항 출도착 및 스팟) 렌더링
+// [모드 3] 현장 화이트보드 조업 현황판 (SPOT | FLT/NO | 기종 | STA/ATA | STD/ATD | ORIGIN/DEST) 렌더링
 function renderFlightMode() {
   updateFlightTabCounts();
 
-  const filtered = flightItems
-    .filter((flt) => {
-      const airlineOk =
-        currentFlightAirlineFilter === 'ALL' || isUpsFlight(flt);
-      if (!airlineOk) return false;
+  const filtered = flightItems.filter((flt) => {
+    const airlineOk =
+      currentFlightAirlineFilter === 'ALL' || isUpsFlight(flt);
+    if (!airlineOk) return false;
 
-      if (currentFlightDirFilter === 'ARR' && flt.dir !== 'ARR') return false;
-      if (currentFlightDirFilter === 'DEP' && flt.dir !== 'DEP') return false;
-      if (currentFlightDirFilter === 'SPOT' && !(flt.spot && flt.spot.trim())) return false;
+    if (currentFlightDirFilter === 'ARR' && !(flt.sta && flt.sta.trim())) return false;
+    if (currentFlightDirFilter === 'DEP' && !(flt.std && flt.std.trim())) return false;
+    if (currentFlightDirFilter === 'SPOT' && !(flt.spot && flt.spot.trim())) return false;
 
-      return matchesFlightItem(flt, searchQuery);
-    })
-    .sort((a, b) => {
-      const tA = (a.actualTime || a.schedTime || '99:99').replace(/[^0-9:]/g, '');
-      const tB = (b.actualTime || b.schedTime || '99:99').replace(/[^0-9:]/g, '');
-      return tA.localeCompare(tB);
-    });
+    return matchesFlightItem(flt, searchQuery);
+  });
 
-  const modeLabel = currentFlightAirlineFilter === 'UPS' ? 'UPS 화물항공편(5X)' : '인천공항 전체 화물편';
-  statusText.textContent = `${modeLabel} · ${filtered.length}편`;
-  statusHint.textContent = `동기화: ${flightLastSync}`;
+  const modeLabel = currentFlightAirlineFilter === 'UPS' ? 'UPS 조업 현황판' : '인천공항 화물 현황판';
+  statusText.textContent = `${modeLabel} · ${filtered.length}건`;
+  statusHint.textContent = `${flightLastSync} · 행 터치 시 수정`;
 
   if (filtered.length === 0) {
     const safeQuery = searchQuery.trim();
     resultsList.innerHTML = `
       <div class="empty-state">
-        <div class="empty-title">조건에 맞는 항공편이 없습니다</div>
+        <div class="empty-title">표시할 현황판 데이터가 없습니다</div>
         <div class="empty-desc">
-          ${
-            currentFlightAirlineFilter === 'UPS'
-              ? '해당 조건의 UPS(5X) 운항편이 없습니다. 상단 [🔄 실시간 갱신]을 누르거나 [전체 화물기]로 전환 또는 직접 추가할 수 있습니다.'
-              : '검색 조건에 해당하는 항공편이 없습니다.'
-          }
+          [🔄 실시간 갱신]으로 인천공항 운항정보를 불러오거나 직접 현황판 행을 추가할 수 있습니다.
         </div>
         <div style="display:flex; gap:8px; justify-content:center; flex-wrap:wrap;">
           <button type="button" class="btn-inline-add" id="inlineSyncFlightBtn" style="background:#16a34a;">🔄 인천공항 실시간 불러오기</button>
-          <button type="button" class="btn-inline-add" id="inlineAddFlightBtn">＋ 항공편·스팟 직접 등록</button>
+          <button type="button" class="btn-inline-add" id="inlineAddFlightBtn">＋ 현황판 행 직접 추가</button>
         </div>
       </div>
     `;
@@ -1204,100 +1106,73 @@ function renderFlightMode() {
   resultsList.innerHTML = filtered
     .map((flt) => {
       const ups = isUpsFlight(flt);
-      const dirLabel = flt.dir === 'ARR' ? '🛬 도착(ARR)' : '🛫 출발(DEP)';
-      const flightNoHtml = highlightText(flt.flightNo, searchQuery);
-      const airlineHtml = ups
-        ? `<span class="ups-pill">UPS · ${highlightText(flt.airline || '유피에스항공', searchQuery)}</span>`
-        : `<span class="airline-pill">${highlightText(flt.airline || '화물기', searchQuery)}</span>`;
-
       const spotHtml =
         flt.spot && flt.spot.trim()
-          ? `<span class="spot-badge">SPOT ${highlightText(flt.spot, searchQuery)}</span>`
-          : `<span class="spot-badge empty">스팟 미정</span>`;
+          ? highlightText(flt.spot, searchQuery)
+          : '<span class="spot-empty">미정</span>';
 
-      const stateText = (flt.state || '').trim() || '예정';
-      let stateClass = 'state-sched';
-      if (stateText.includes('지연') || stateText.includes('결항') || stateText.includes('회항')) {
-        stateClass = 'state-delay';
-      } else if (stateText.includes('도착') || stateText.includes('출발')) {
-        stateClass = 'state-done';
-      }
+      const fltNoHtml = highlightText(flt.fltNo || '-', searchQuery);
+      const airlineSubHtml = !ups && flt.airline ? `<span class="wb-flt-sub">${highlightText(flt.airline, searchQuery)}</span>` : '';
+      const acHtml = highlightText(flt.aircraft || '-', searchQuery);
 
-      const timeTitle = flt.dir === 'ARR' ? '도착시간(실제/계획)' : '출발시간(실제/계획)';
-      const actualT = flt.actualTime || flt.schedTime || '--:--';
-      const schedT = flt.schedTime && flt.schedTime !== actualT ? `<span class="time-sched">계획 <del>${flt.schedTime}</del></span>` : `<span class="time-sched">정시 ${flt.schedTime || actualT}</span>`;
+      const staHtml = flt.sta ? highlightText(flt.sta, searchQuery) : '-';
+      const ataSubClass = (flt.ataSub || '').includes('지연') ? 'delay' : (flt.ataSub || '').includes('ATA') ? 'done' : '';
+      const ataSubHtml = flt.ataSub ? `<span class="wb-time-sub ${ataSubClass}">${flt.ataSub}</span>` : '';
 
-      const routePrefix = flt.dir === 'ARR' ? '출발지:' : '목적지:';
-      const viaHtml =
-        flt.via && flt.via.trim()
-          ? `<div class="route-via">↪ 경유(Via): ${highlightText(flt.via, searchQuery)}</div>`
-          : '';
+      const stdHtml = flt.std ? highlightText(flt.std, searchQuery) : '-';
+      const atdSubClass = (flt.atdSub || '').includes('지연') ? 'delay' : (flt.atdSub || '').includes('ATD') ? 'done' : '';
+      const atdSubHtml = flt.atdSub ? `<span class="wb-time-sub ${atdSubClass}">${flt.atdSub}</span>` : '';
 
-      // 3CODE & SLIC 자동 연동 칩
-      const matchedSlics = getMatchingSlicChips(flt.location, flt.via);
-      const slicChipsHtml =
-        matchedSlics.length > 0
-          ? `
-            <div class="route-slic-chips">
-              ${matchedSlics
-                .map(
-                  (m) =>
-                    `<span class="route-slic-chip">${m.code} · SLIC ${m.slic || '미등록'} (${m.dest})</span>`
-                )
-                .join('')}
-            </div>
-          `
-          : '';
+      const routeHtml = highlightText(flt.originDest || '-', searchQuery);
 
-      // Flightradar24 검색용 편명 정리 (예: 5X011 -> 5x11)
-      const cleanFltForFr24 = (flt.flightNo || '')
-        .trim()
-        .replace(/^([A-Z0-9]{2})0+(\d+)$/i, '$1$2')
-        .toLowerCase();
-      const fr24Url = `https://www.flightradar24.com/data/flights/${encodeURIComponent(cleanFltForFr24)}`;
-      const icnUrl =
-        flt.dir === 'ARR'
-          ? 'https://www.airport.kr/ap_ko/879/subview.do'
-          : 'https://www.airport.kr/ap_ko/876/subview.do';
+      // ORIGIN/DEST에 포함된 3CODE와 앱의 SLIC 자동 연결
+      const matchedSlics = getMatchingSlicChips(flt.originDest, flt.memo);
+      const slicTagsHtml = matchedSlics
+        .map((m) => `<span class="wb-slic-tag">${m.code}:${m.slic || '미등록'}(${m.dest})</span>`)
+        .join('');
+
+      const stateText = (flt.state || '').trim();
+      let stateTagClass = 'sched';
+      if (stateText.includes('지연') || stateText.includes('결항')) stateTagClass = 'delay';
+      else if (stateText.includes('도착') || stateText.includes('출발')) stateTagClass = 'done';
+
+      // Flightradar24 링크용 첫 편명 추출 (예: 37/174 -> 5x37, 195 -> 5x195)
+      const firstPart = ((flt.fltNo || '').split('/')[0] || '').trim();
+      const fr24Flt = /^\d+$/.test(firstPart)
+        ? `5x${parseInt(firstPart, 10)}`
+        : firstPart.replace(/^([A-Z0-9]{2})0+(\d+)$/i, '$1$2').toLowerCase();
+      const fr24Url = `https://www.flightradar24.com/data/flights/${encodeURIComponent(fr24Flt)}`;
 
       return `
-        <div class="flight-card ${ups ? 'is-ups' : ''}" data-flight-id="${flt.id}">
-          <div class="flight-card-top">
-            <div class="flight-id-group">
-              <span class="dir-badge dir-${flt.dir}">${dirLabel}</span>
-              <span class="flight-no">${flightNoHtml}</span>
-              ${airlineHtml}
+        <div class="wb-row-card ${ups ? 'is-ups' : ''}" data-flight-id="${flt.id}">
+          <div class="wb-grid">
+            <div class="wb-cell wb-spot">${spotHtml}</div>
+            <div class="wb-cell">
+              <span class="wb-flt">${fltNoHtml}</span>
+              ${airlineSubHtml}
             </div>
-            <div class="flight-spot-group">
-              ${spotHtml}
-              <span class="state-badge ${stateClass}">${highlightText(stateText, searchQuery)}</span>
+            <div class="wb-cell wb-ac">${acHtml}</div>
+            <div class="wb-cell">
+              <span class="wb-time">${staHtml}</span>
+              ${ataSubHtml}
             </div>
-          </div>
-
-          <div class="flight-card-mid">
-            <div class="flight-time-box">
-              <span class="time-label">${timeTitle}</span>
-              <span class="time-actual">${highlightText(actualT, searchQuery)}</span>
-              ${schedT}
+            <div class="wb-cell">
+              <span class="wb-time">${stdHtml}</span>
+              ${atdSubHtml}
             </div>
-            <div class="flight-route-box">
-              <div class="route-main">${routePrefix} ${highlightText(flt.location || '-', searchQuery)}</div>
-              ${viaHtml}
-              ${slicChipsHtml}
+            <div class="wb-cell">
+              <span class="wb-route">${routeHtml}</span>
             </div>
           </div>
-
-          <div class="flight-card-bottom">
-            <div class="flight-term-memo">
-              <span class="term-tag">${highlightText(flt.terminal || 'Cargo', searchQuery)}</span>
-              ${flt.memo ? `<span class="flight-memo-text">📝 ${highlightText(flt.memo, searchQuery)}</span>` : '<span>터치하여 스팟·시간·메모 수정</span>'}
+          <div class="wb-footer">
+            <div class="wb-footer-left">
+              ${stateText ? `<span class="wb-state-tag ${stateTagClass}">${highlightText(stateText, searchQuery)}</span>` : ''}
+              ${slicTagsHtml}
+              ${flt.memo ? `<span class="wb-memo-tag">${highlightText(flt.memo, searchQuery)}</span>` : ''}
             </div>
             <div class="flight-quick-links">
-              <a href="${fr24Url}" target="_blank" rel="noopener" class="btn-flight-link" data-ext-link="true" title="실시간 항공기 위치 추적">
-                📡 실시간 항적
-              </a>
-              <a href="${icnUrl}" target="_blank" rel="noopener" class="btn-flight-link" data-ext-link="true" title="인천공항 공식 화물운항정보">
-                🏢 공항웹
+              <a href="${fr24Url}" target="_blank" rel="noopener" class="btn-flight-link" data-ext-link="true" title="Flightradar24 항적">
+                📡 항적
               </a>
             </div>
           </div>
@@ -1308,8 +1183,23 @@ function renderFlightMode() {
 }
 
 // ==========================================
-// 인천공항 공식 화물 운항정보 실시간 동기화 엔진
+// 인천공항 공식 화물 운항정보 실시간 동기화 & 화이트보드6열 변환 엔진
 // ==========================================
+function formatTo4DigitTime(t) {
+  if (!t) return '';
+  return t.replace(/[^0-9]/g, '').slice(0, 4);
+}
+
+function shortUpsFltNo(flightNo) {
+  if (!flightNo) return '';
+  const up = flightNo.trim().toUpperCase();
+  if (up.startsWith('5X')) {
+    const num = up.slice(2).replace(/^0+/, '');
+    return num || up;
+  }
+  return up;
+}
+
 function parseAirportKrCargoHtml(htmlString, dirType) {
   if (!htmlString) return [];
   const parser = new DOMParser();
@@ -1317,7 +1207,7 @@ function parseAirportKrCargoHtml(htmlString, dirType) {
   const rows = doc.querySelectorAll('.toggle[id^="afs_"]');
   const parsed = [];
 
-  rows.forEach((row, index) => {
+  rows.forEach((row) => {
     const actualTime = (row.querySelector('.time strong')?.textContent || '').trim();
     const schedTime = (row.querySelector('.time span')?.textContent || '').trim() || actualTime;
 
@@ -1341,24 +1231,148 @@ function parseAirportKrCargoHtml(htmlString, dirType) {
     const state = (row.querySelector('.state span')?.textContent || '').replace(/\s+/g, ' ').trim() || '예정';
 
     if (flightNo) {
+      // 경유지가 있으면 실제 직전/직후 기항지 3CODE 우선 추출
+      const route3Code = viaTitle ? extract3CodeFromText(viaTitle) : extract3CodeFromText(location);
       parsed.push({
-        id: `live-${dirType.toLowerCase()}-${flightNo}-${actualTime || index}`,
         dir: dirType,
         flightNo,
         airline,
-        actualTime: actualTime || schedTime,
-        schedTime: schedTime || actualTime,
+        actualTime,
+        schedTime,
         location,
         via: viaTitle,
+        route3Code,
         terminal,
         spot,
-        state,
-        memo: ''
+        state
       });
     }
   });
 
   return parsed;
+}
+
+// 인천공항 개별 ARR/DEP 리스트를 현장 화이트보드(SPOT 기준 Turnaround) 행으로 병합
+function buildWhiteboardRowsFromLive(arrList, depList) {
+  const boardRows = [];
+  const usedDepIndices = new Set();
+
+  // 1) 도착편(ARR) 기준으로 동일 SPOT 및 이후 시간의 출발편(DEP) 페어링
+  arrList.forEach((arr, aIdx) => {
+    const isUps = isUpsFlight(arr);
+    const arrShort = isUps ? shortUpsFltNo(arr.flightNo) : arr.flightNo;
+    const sta4 = formatTo4DigitTime(arr.schedTime || arr.actualTime);
+    const ataSub =
+      arr.actualTime && arr.actualTime !== arr.schedTime
+        ? `ATA ${arr.actualTime}`
+        : arr.state === '도착'
+        ? `도착 ${arr.actualTime}`
+        : '';
+
+    let matchedDep = null;
+    if (arr.spot) {
+      const depIdx = depList.findIndex((dep, dIdx) => {
+        if (usedDepIndices.has(dIdx)) return false;
+        if (dep.spot !== arr.spot) return false;
+        if (dep.airline !== arr.airline) return false;
+        const arrT = formatTo4DigitTime(arr.actualTime || arr.schedTime) || '0000';
+        const depT = formatTo4DigitTime(dep.schedTime || dep.actualTime) || '2359';
+        return depT >= arrT;
+      });
+      if (depIdx !== -1) {
+        usedDepIndices.add(depIdx);
+        matchedDep = depList[depIdx];
+      }
+    }
+
+    const presetArr = UPS_FLIGHT_PRESETS[arrShort] || {};
+
+    if (matchedDep) {
+      const depShort = isUps ? shortUpsFltNo(matchedDep.flightNo) : matchedDep.flightNo;
+      const presetDep = UPS_FLIGHT_PRESETS[depShort] || {};
+      const std4 = formatTo4DigitTime(matchedDep.schedTime || matchedDep.actualTime);
+      const atdSub =
+        matchedDep.actualTime && matchedDep.actualTime !== matchedDep.schedTime
+          ? `${matchedDep.state || '변경'} ${matchedDep.actualTime}`
+          : matchedDep.state || '';
+
+      const origCode = presetArr.origin || arr.route3Code || 'ICN';
+      const destCode = presetDep.dest || matchedDep.route3Code || 'ICN';
+      const aircraft = presetArr.aircraft || presetDep.aircraft || (isUps ? '748' : '-');
+
+      boardRows.push({
+        id: `live-pair-${arr.spot}-${arrShort}-${depShort}-${aIdx}`,
+        spot: arr.spot || '',
+        fltNo: `${arrShort}/${depShort}`,
+        aircraft,
+        sta: sta4,
+        ataSub,
+        std: std4,
+        atdSub,
+        originDest: `${origCode}/${destCode}`,
+        airline: arr.airline,
+        state: [arr.state, matchedDep.state].filter(Boolean).join(' · '),
+        memo: `${arr.flightNo} ➔ ${matchedDep.flightNo} (${arr.terminal})`
+      });
+    } else {
+      const origCode = presetArr.origin || arr.route3Code || '';
+      const aircraft = presetArr.aircraft || (isUps ? '748' : '-');
+      boardRows.push({
+        id: `live-arr-${arr.spot || 'nospot'}-${arrShort}-${aIdx}`,
+        spot: arr.spot || '',
+        fltNo: arrShort,
+        aircraft,
+        sta: sta4,
+        ataSub,
+        std: '',
+        atdSub: '',
+        originDest: origCode,
+        airline: arr.airline,
+        state: arr.state || '도착예정',
+        memo: `${arr.flightNo} 도착편 (${arr.location})`
+      });
+    }
+  });
+
+  // 2) 페어링되지 않은 단독 출발편(DEP) 추가 (예: 631 스팟 195편 등)
+  depList.forEach((dep, dIdx) => {
+    if (usedDepIndices.has(dIdx)) return;
+    const isUps = isUpsFlight(dep);
+    const depShort = isUps ? shortUpsFltNo(dep.flightNo) : dep.flightNo;
+    const presetDep = UPS_FLIGHT_PRESETS[depShort] || {};
+    const std4 = formatTo4DigitTime(dep.schedTime || dep.actualTime);
+    const atdSub =
+      dep.actualTime && dep.actualTime !== dep.schedTime
+        ? `${dep.state || '변경'} ${dep.actualTime}`
+        : dep.state || '';
+    const destCode = presetDep.dest || dep.route3Code || '';
+    const aircraft = presetDep.aircraft || (isUps ? '767' : '-');
+
+    boardRows.push({
+      id: `live-dep-${dep.spot || 'nospot'}-${depShort}-${dIdx}`,
+      spot: dep.spot || '',
+      fltNo: depShort,
+      aircraft,
+      sta: '',
+      ataSub: '',
+      std: std4,
+      atdSub,
+      originDest: destCode,
+      airline: dep.airline,
+      state: dep.state || '출발예정',
+      memo: `${dep.flightNo} 출발편 (${dep.location})`
+    });
+  });
+
+  // UPS 편 우선, 그 다음 SPOT 및 시간순 정렬
+  return boardRows.sort((a, b) => {
+    const uA = isUpsFlight(a) ? 0 : 1;
+    const uB = isUpsFlight(b) ? 0 : 1;
+    if (uA !== uB) return uA - uB;
+    const tA = a.sta || a.std || '9999';
+    const tB = b.sta || b.std || '9999';
+    return tA.localeCompare(tB);
+  });
 }
 
 async function fetchHtmlViaCorsProxy(targetUrl) {
@@ -1399,7 +1413,7 @@ async function syncLiveIcnFlights(silent = false) {
   liveSyncBtn.classList.add('loading');
   liveSyncBtn.textContent = '⏳ 수신중...';
   if (!silent) {
-    showToast('인천공항 실시간 화물 운항정보(스팟·시간)를 불러오는 중...');
+    showToast('인천공항 실시간 운항·스팟 정보를 현황판 형식으로 불러오는 중...');
   }
 
   const depUrl = `https://www.airport.kr/depCargo/ap_ko/depCargoSchList.do?daySel=${rawDate}&fromTime=0000&toTime=2359`;
@@ -1413,45 +1427,28 @@ async function syncLiveIcnFlights(silent = false) {
 
     const liveArr = parseAirportKrCargoHtml(arrHtml, 'ARR');
     const liveDep = parseAirportKrCargoHtml(depHtml, 'DEP');
-    const combinedLive = [...liveArr, ...liveDep];
+    const boardRows = buildWhiteboardRowsFromLive(liveArr, liveDep);
 
-    if (combinedLive.length > 0) {
-      // 기존에 사용자가 입력해둔 메모 보존
-      const memoMap = {};
-      flightItems.forEach((old) => {
-        if (old.memo) {
-          memoMap[`${old.dir}-${old.flightNo}`] = old.memo;
-        }
-      });
-
-      // 사용자가 직접 추가한 커스텀 항공편 보존
-      const customFlights = flightItems.filter((f) => f.id && f.id.startsWith('custom-flt-'));
-
-      combinedLive.forEach((f) => {
-        const key = `${f.dir}-${f.flightNo}`;
-        if (memoMap[key]) f.memo = memoMap[key];
-      });
-
-      flightItems = [...customFlights, ...combinedLive];
+    if (boardRows.length > 0) {
+      const customFlights = flightItems.filter((f) => f.id && f.id.startsWith('custom-wb-'));
+      flightItems = [...customFlights, ...boardRows];
 
       const now = new Date();
       const hh = String(now.getHours()).padStart(2, '0');
       const mm = String(now.getMinutes()).padStart(2, '0');
       const formattedDate = `${rawDate.slice(4, 6)}.${rawDate.slice(6, 8)}`;
-      flightLastSync = `${formattedDate} ${hh}:${mm} 실시간 반영 (${combinedLive.length}편)`;
+      flightLastSync = `${formattedDate} ${hh}:${mm} 공항실시간 반영`;
       saveFlightData();
       render();
 
       const upsCount = flightItems.filter((f) => isUpsFlight(f)).length;
-      showToast(`✅ 인천공항 실시간 동기화 완료! (전체 ${combinedLive.length}편 / UPS ${upsCount}편)`);
-    } else {
-      if (!silent) {
-        showToast('선택한 날짜의 실시간 운항 데이터가 아직 없습니다.');
-      }
+      showToast(`✅ 인천공항 실시간 현황판 갱신 완료! (UPS ${upsCount}건 / 전체 ${boardRows.length}건)`);
+    } else if (!silent) {
+      showToast('선택한 날짜의 실시간 운항 데이터가 없습니다.');
     }
   } catch (err) {
     if (!silent) {
-      showToast('실시간 서버 연결 지연으로 저장된 최신 운항표를 표시합니다.');
+      showToast('실시간 서버 연결 지연으로 저장된 현황판을 표시합니다.');
     }
   } finally {
     liveSyncBtn.classList.remove('loading');
@@ -1471,6 +1468,7 @@ function switchMode(newMode) {
     uldTypeTabs.style.display = 'none';
     flightControls.style.display = 'none';
     codeListHeader.style.display = 'grid';
+    flightBoardHeader.style.display = 'none';
     typeDictBtn.style.display = 'none';
     icnOfficialLinkBtn.style.display = 'none';
     fabCameraBtn.style.display = 'none';
@@ -1481,6 +1479,7 @@ function switchMode(newMode) {
     uldTypeTabs.style.display = 'flex';
     flightControls.style.display = 'none';
     codeListHeader.style.display = 'none';
+    flightBoardHeader.style.display = 'none';
     typeDictBtn.style.display = 'inline-flex';
     icnOfficialLinkBtn.style.display = 'none';
     fabCameraBtn.style.display = 'flex';
@@ -1491,17 +1490,12 @@ function switchMode(newMode) {
     uldTypeTabs.style.display = 'none';
     flightControls.style.display = 'flex';
     codeListHeader.style.display = 'none';
+    flightBoardHeader.style.display = 'grid';
     typeDictBtn.style.display = 'none';
     icnOfficialLinkBtn.style.display = 'inline-flex';
     fabCameraBtn.style.display = 'none';
-    fabAddText.textContent = '＋ 항공편·스팟 추가';
-    searchInput.placeholder = '편명(5X011, 5X174), 스팟(632, 636), 목적지(ANC, SDF) 검색...';
-
-    // 첫 진입 시 백그라운드에서 인천공항 실시간 데이터 자동 동기화 시도
-    if (!hasAutoSyncedOnce) {
-      hasAutoSyncedOnce = true;
-      syncLiveIcnFlights(true);
-    }
+    fabAddText.textContent = '＋ 현황판 행 추가';
+    searchInput.placeholder = 'SPOT(631, 632), FLT/NO(37/174, 195), 기종(748), ORIGIN/DEST(CGO) 검색...';
   }
 
   render();
@@ -1649,31 +1643,26 @@ function closeUldModal() {
 }
 
 // ==========================================
-// 항공편 & 스팟 모달 열기 / 닫기
+// 항공편 화이트보드 현황판 (SPOT | FLT/NO | 기종 | STA/ATA | STD/ATD | ORIGIN/DEST) 모달 열기 / 닫기
 // ==========================================
 function openFlightModalForCreate(prefill = '') {
   editingFlightId = null;
-  flightModalTitle.textContent = '새 항공편 및 스팟 등록';
+  flightModalTitle.textContent = '현황판 새 항공편 (SPOT·편명) 등록';
   deleteFlightBtn.style.display = 'none';
 
-  const defaultDir = currentFlightDirFilter === 'DEP' ? 'DEP' : 'ARR';
-  const radio = flightForm.querySelector(`input[name="flightDir"][value="${defaultDir}"]`);
-  if (radio) radio.checked = true;
-
-  flightNoInput.value = prefill ? prefill.toUpperCase() : '5X';
-  flightAirlineInput.value = '유피에스항공';
   flightSpotInput.value = '';
-  flightTimeInput.value = '';
-  flightSchedInput.value = '';
-  flightLocationInput.value = '';
-  flightViaInput.value = '';
-  flightTerminalInput.value = 'Cargo(S)';
+  flightNoInput.value = prefill ? prefill.toUpperCase() : '';
+  flightAircraftInput.value = '748';
+  flightStaInput.value = '';
+  flightStdInput.value = '';
+  flightOriginDestInput.value = '';
+  flightAirlineInput.value = '유피에스항공';
   flightStateInput.value = '예정';
   flightMemoInput.value = '';
 
   flightModal.classList.add('open');
   setTimeout(() => {
-    flightNoInput.focus();
+    flightSpotInput.focus();
   }, 80);
 }
 
@@ -1682,20 +1671,16 @@ function openFlightModalForEdit(id) {
   if (!target) return;
 
   editingFlightId = id;
-  flightModalTitle.textContent = `${target.flightNo} 스팟·운항정보 수정`;
+  flightModalTitle.textContent = `SPOT ${target.spot || '-'} · ${target.fltNo} 수정`;
   deleteFlightBtn.style.display = 'inline-block';
 
-  const radio = flightForm.querySelector(`input[name="flightDir"][value="${target.dir || 'ARR'}"]`);
-  if (radio) radio.checked = true;
-
-  flightNoInput.value = target.flightNo || '';
-  flightAirlineInput.value = target.airline || '';
   flightSpotInput.value = target.spot || '';
-  flightTimeInput.value = target.actualTime || '';
-  flightSchedInput.value = target.schedTime || '';
-  flightLocationInput.value = target.location || '';
-  flightViaInput.value = target.via || '';
-  flightTerminalInput.value = target.terminal || 'Cargo(S)';
+  flightNoInput.value = target.fltNo || '';
+  flightAircraftInput.value = target.aircraft || '';
+  flightStaInput.value = target.sta || '';
+  flightStdInput.value = target.std || '';
+  flightOriginDestInput.value = target.originDest || '';
+  flightAirlineInput.value = target.airline || '유피에스항공';
   flightStateInput.value = target.state || '';
   flightMemoInput.value = target.memo || '';
 
@@ -1710,10 +1695,29 @@ function closeFlightModal() {
   editingFlightId = null;
 }
 
+// 편명(FLT/NO) 입력 시 기본 투입 기종(767, 744, 748) 및 ORIGIN/DEST 자동 추천
 flightNoInput.addEventListener('input', () => {
-  const v = flightNoInput.value.trim().toUpperCase();
-  if (v.startsWith('5X') || v.startsWith('UPS')) {
+  if (editingFlightId) return;
+  const raw = flightNoInput.value.trim().toUpperCase();
+  const parts = raw.split('/').map((s) => shortUpsFltNo(s));
+  const p0 = UPS_FLIGHT_PRESETS[parts[0]];
+  const p1 = parts[1] ? UPS_FLIGHT_PRESETS[parts[1]] : null;
+
+  if (p0 || p1) {
     flightAirlineInput.value = '유피에스항공';
+    const ac = (p0 && p0.aircraft) || (p1 && p1.aircraft);
+    if (ac) flightAircraftInput.value = ac;
+
+    if (!flightOriginDestInput.value.trim()) {
+      if (p0 && p1) {
+        const orig = p0.origin || p0.dest || '';
+        const dest = p1.dest || p1.origin || '';
+        if (orig && dest) flightOriginDestInput.value = `${orig}/${dest}`;
+      } else if (p0) {
+        flightOriginDestInput.value =
+          p0.origin && p0.dest ? `${p0.origin}/${p0.dest}` : p0.dest || p0.origin || '';
+      }
+    }
   }
 });
 
@@ -1998,8 +2002,8 @@ resultsList.addEventListener('click', (e) => {
     return;
   }
 
-  // 항공편 카드 클릭
-  const flightCard = e.target.closest('.flight-card');
+  // 항공편 화이트보드 행 클릭
+  const flightCard = e.target.closest('.wb-row-card');
   if (flightCard) {
     openFlightModalForEdit(flightCard.dataset.flightId);
   }
@@ -2163,25 +2167,21 @@ deleteUldBtn.addEventListener('click', () => {
   }
 });
 
-// 항공편 및 스팟 저장 (추가/수정)
+// 항공편 화이트보드 행 저장 (추가/수정)
 flightForm.addEventListener('submit', (e) => {
   e.preventDefault();
-  const dir = flightForm.querySelector('input[name="flightDir"]:checked')?.value || 'ARR';
-  const flightNo = flightNoInput.value.trim().toUpperCase();
-  const airline =
-    flightAirlineInput.value.trim() ||
-    (flightNo.startsWith('5X') || flightNo.startsWith('UPS') ? '유피에스항공' : '화물항공');
   const spot = flightSpotInput.value.trim().toUpperCase();
-  const actualTime = flightTimeInput.value.trim();
-  const schedTime = flightSchedInput.value.trim() || actualTime;
-  const location = flightLocationInput.value.trim();
-  const via = flightViaInput.value.trim();
-  const terminal = flightTerminalInput.value.trim() || 'Cargo(S)';
-  const state = flightStateInput.value.trim() || '예정';
+  const fltNo = flightNoInput.value.trim().toUpperCase();
+  const aircraft = flightAircraftInput.value.trim().toUpperCase();
+  const sta = flightStaInput.value.trim().toUpperCase();
+  const std = flightStdInput.value.trim().toUpperCase();
+  const originDest = flightOriginDestInput.value.trim().toUpperCase();
+  const airline = flightAirlineInput.value.trim() || '유피에스항공';
+  const state = flightStateInput.value.trim();
   const memo = flightMemoInput.value.trim();
 
-  if (!flightNo || !actualTime || !location) {
-    showToast('편명, 시간, 출발/목적지를 입력해 주세요.');
+  if (!spot || !fltNo || !originDest) {
+    showToast('SPOT, FLT/NO, ORIGIN/DEST를 입력해 주세요.');
     return;
   }
 
@@ -2190,35 +2190,33 @@ flightForm.addEventListener('submit', (e) => {
     if (idx !== -1) {
       flightItems[idx] = {
         ...flightItems[idx],
-        dir,
-        flightNo,
-        airline,
         spot,
-        actualTime,
-        schedTime,
-        location,
-        via,
-        terminal,
+        fltNo,
+        aircraft,
+        sta,
+        std,
+        originDest,
+        airline,
         state,
         memo
       };
       saveFlightData();
       render();
       closeFlightModal();
-      showToast(`${flightNo} (SPOT: ${spot || '미정'}) 정보가 수정되었습니다.`);
+      showToast(`SPOT ${spot} (${fltNo}) 현황판 정보가 수정되었습니다.`);
     }
   } else {
     const newFlt = {
-      id: `custom-flt-${Date.now()}`,
-      dir,
-      flightNo,
-      airline,
+      id: `custom-wb-${Date.now()}`,
       spot,
-      actualTime,
-      schedTime,
-      location,
-      via,
-      terminal,
+      fltNo,
+      aircraft,
+      sta,
+      ataSub: '',
+      std,
+      atdSub: '',
+      originDest,
+      airline,
       state,
       memo
     };
@@ -2226,7 +2224,7 @@ flightForm.addEventListener('submit', (e) => {
     saveFlightData();
     render();
     closeFlightModal();
-    showToast(`${flightNo} 항공편이 등록되었습니다.`);
+    showToast(`SPOT ${spot} (${fltNo}) 행이 현황판에 추가되었습니다.`);
   }
 });
 
@@ -2236,12 +2234,12 @@ deleteFlightBtn.addEventListener('click', () => {
   const target = flightItems.find((it) => it.id === editingFlightId);
   if (!target) return;
 
-  if (confirm(`'${target.flightNo}' 항공편 정보를 목록에서 삭제하시겠습니까?`)) {
+  if (confirm(`'SPOT ${target.spot} · ${target.fltNo}' 행을 현황판에서 삭제하시겠습니까?`)) {
     flightItems = flightItems.filter((it) => it.id !== editingFlightId);
     saveFlightData();
     render();
     closeFlightModal();
-    showToast(`${target.flightNo} 항공편이 삭제되었습니다.`);
+    showToast(`SPOT ${target.spot} (${target.fltNo}) 행이 삭제되었습니다.`);
   }
 });
 
@@ -2263,12 +2261,12 @@ resetDataBtn.addEventListener('click', () => {
       showToast('ULD 조업 장비 기준표(8종)로 복원되었습니다.');
     }
   } else {
-    if (confirm('항공편 목록을 초기화하고 인천공항 실시간 데이터를 다시 불러오시겠습니까?')) {
+    if (confirm('항공편 현황판을 기본 화이트보드(631, 632, 636, 629, 630) 상태로 복원하시겠습니까?')) {
       flightItems = JSON.parse(JSON.stringify(INITIAL_FLIGHT_DATA));
-      flightLastSync = '기본 스케줄 복원됨';
+      flightLastSync = '현장 현황판 기본 복원됨';
       saveFlightData();
       render();
-      syncLiveIcnFlights(false);
+      showToast('현장 화이트보드 기본 현황판으로 복원되었습니다.');
     }
   }
 });
