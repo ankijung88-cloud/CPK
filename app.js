@@ -3133,7 +3133,7 @@ if (removePinnedSchedBtn) {
 // ==========================================
 // [모드 4] UPS 항공조업 절차서 (SOP) 관리 및 순서·내용 CRUD 엔진
 // ==========================================
-const SOP_STORAGE_KEY = 'cpk_ups_sop_steps_v1';
+const SOP_STORAGE_KEY = 'cpk_ups_sop_steps_v2';
 
 const INITIAL_SOP_DATA = [
   {
@@ -3236,6 +3236,68 @@ const INITIAL_SOP_DATA = [
     caution: '초크 제거는 반드시 항공기 브레이크 체결 및 토우바 연결이 완료된 후 실시!',
     photo: '',
     checked: false
+  },
+  // UPS 항공조업 지게차 작업(Forklift) 표준 절차서 (6단계)
+  {
+    id: 'sop-forklift-1',
+    phase: '지게차 작업(Forklift)',
+    title: '[지게차] 작업 전 일상점검 및 운전자 안전보호구 · 벨트 착용',
+    content:
+      '1) 작업 전 지게차 상태 점검: 포크(Fork) 균열·변형, 마스트 체인 및 유압 호스 누유, 타이어 마모, 브레이크·주차브레이크 작동 확인\n2) 안전 장치 확인: 전조등, 작업등, 경적(Horn), 후진 경보음(Back Buzzer), 경광등 정상 작동 확인\n3) 유자격 운전자만 탑승하며 안전모·안전화·안전조끼 착용 후 반드시 좌석 안전벨트(Seat Belt) 체결',
+    caution: '🚨 안전벨트 미착용 운전 절대 금지! 운전석 외 동승자 탑승 및 포크(Fork) 위 사람 탑승 절대 금지!',
+    photo: '',
+    checked: false
+  },
+  {
+    id: 'sop-forklift-2',
+    phase: '지게차 작업(Forklift)',
+    title: '[지게차] ULD(팔레트·컨테이너) 및 스키드 화물 포크 진입 · 인양',
+    content:
+      '1) 화물 또는 ULD 포켓(Fork Pocket) 폭에 맞춰 포크 간격을 좌우 대칭으로 최대한 넓게 조절하여 편하중 방지\n2) 진입 시 포크를 수평으로 맞추고 화물 바닥 끝까지(포크 길이의 3/4 이상) 천천히 완전히 삽입\n3) 지면에서 10~15cm 살짝 들어 무게중심 안정성을 확인한 후, 마스트를 뒤로 충분히 틸트(Tilt Back)하고 지면 15~30cm 높이 유지',
+    caution:
+      '🚨 포크 포켓이 없는 일반 항공 ULD 바닥판(Base Plate)에 포크를 직접 찌르면 ULD가 파손됨 — 반드시 슬레이브 팔레트(Slave Pallet) 또는 전용 포켓 사용!',
+    photo: '',
+    checked: false
+  },
+  {
+    id: 'sop-forklift-3',
+    phase: '지게차 작업(Forklift)',
+    title: '[지게차] 램프(주기장) · 창고 내 안전 주행 및 시야 확보',
+    content:
+      '1) 주행 시 포크 높이를 지면에서 15~30cm로 낮추고 마스트 후방 틸트 상태 유지\n2) 조업 구역 및 창고 내 제한속도(10km/h 이하, 장비·기체 주변 5km/h 이하) 엄수 및 교차로·출입구 일시정지 후 경적 울림\n3) 대형·부피 화물로 전방 시야가 가려질 경우 반드시 후진 주행하거나 유도자(신호수)를 배치하여 이동\n4) 경사로 이동 시 화물 적재 상태에서는 전진 등판 / 후진 강판하여 화물 낙하 방지',
+    caution: '포크를 높게 든 상태(고소 인양 상태)로 주행하거나 급출발·급브레이크·급회전 절대 금지 (화물 낙하 및 지게차 전도 위험)!',
+    photo: '',
+    checked: false
+  },
+  {
+    id: 'sop-forklift-4',
+    phase: '지게차 작업(Forklift)',
+    title: '[지게차] 돌리(DOLLY) 및 트럭 · 벌크 화물 상·하차 작업',
+    content:
+      '1) 상·하차 전 대상 돌리(DOLLY)의 견인바(Towbar)를 세워 브레이크를 걸고 바퀴 초크 고정 및 회전판·스토퍼 위치 확인\n2) 돌리 또는 트럭 적재함에 수직(직각)으로 정면 접근하고, 정위치 상차 후 포크를 완전히 내린 뒤 포크가 끝까지 빠진 것을 확인하고 후진\n3) 돌리에 ULD/팔레트 상차 완료 즉시 돌리 스토퍼(Lock)를 모두 세워 체결 상태 확인',
+    caution: '항공기 동체 주변(ERA 내부)에 지게차 접근 시 반드시 유도자(Guide Man) 수신호에 따르며 기체 접촉 절대 주의!',
+    photo: '',
+    checked: false
+  },
+  {
+    id: 'sop-forklift-5',
+    phase: '지게차 작업(Forklift)',
+    title: '[지게차] 장척물(SHP) · 중량물 · 위험물(DG) 특수 화물 취급',
+    content:
+      '1) 장척물(SHP/Over-size) 취급 시 규격에 맞는 덧발(Fork Extension)을 장착하고 덧발 고정핀(Lock Pin) 체결 여부를 반드시 확인\n2) 무게중심이 편향된 중량물은 무게중심 표시(C.G)를 확인해 중앙에 맞춰 인양하고 신호수와 2인 1조로 작업\n3) 위험물(DG) 화물은 외관 파손·누출 여부를 사전 확인하고 충격이나 기울어짐이 없도록 저속으로 단품 취급',
+    caution: '지게차 정격 하중 초과 인양 금지 및 포크 끝단(Tip)만으로 화물을 찍어 올리거나 미는 행위 절대 금지!',
+    photo: '',
+    checked: false
+  },
+  {
+    id: 'sop-forklift-6',
+    phase: '지게차 작업(Forklift)',
+    title: '[지게차] 작업 종료 및 지정 구역 주차 · 마감 안전 조치',
+    content:
+      '1) 작업 완료 후 항공기 이동 동선 및 주기장(SPOT)을 벗어난 지정 지게차 주차 구역에 평탄하게 정차\n2) 마스트를 수직(전방 틸트)으로 하여 포크(Fork) 끝단이 바닥에 완전히 닿도록 최하단까지 하강\n3) 전·후진 레버 중립, 주차 브레이크(Parking Brake) 완전 체결, 시동 OFF 후 키(Key) 분리 및 바퀴 초크(Chock) 설치',
+    caution: '잠시 정차하더라도 포크를 공중에 띄운 채로 운전석을 이탈하는 행위 절대 금지!',
+    photo: '',
+    checked: false
   }
 ];
 
@@ -3333,7 +3395,8 @@ function updateSopProgressAndTabs() {
     '항공기 도착·접안',
     '하기 작업(Off-load)',
     '탑재 작업(On-load)',
-    '출발·조업 마감'
+    '출발·조업 마감',
+    '지게차 작업(Forklift)'
   ];
   const allPhases = new Set(defaultPhases);
   sopItems.forEach((it) => {
