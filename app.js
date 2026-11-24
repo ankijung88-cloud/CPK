@@ -173,8 +173,8 @@ const INITIAL_ULD_DATA = [
 ];
 
 // 실시간 항공편 (현장 화이트보드 조업 현황판 형식) 저장 키
-const FLIGHT_STORAGE_KEY = 'cpk_flight_board_v2';
-const FLIGHT_LAST_SYNC_KEY = 'cpk_flight_last_sync_v2';
+const FLIGHT_STORAGE_KEY = 'cpk_flight_board_v3';
+const FLIGHT_LAST_SYNC_KEY = 'cpk_flight_last_sync_v3';
 
 // UPS 편명별 기본 투입 기종 및 기본 노선 매핑 사전
 const UPS_FLIGHT_PRESETS = {
@@ -1255,12 +1255,38 @@ function parseAirportKrCargoHtml(htmlString, dirType) {
   return parsed;
 }
 
+// HHMM 문자열을 분(minutes) 단위로 변환 (동일 스팟 터어라운드 시간 차이 계산용)
+function hhmmToMinutes(hhmm) {
+  if (!hhmm || hhmm.length < 4) return -1;
+  const h = parseInt(hhmm.slice(0, 2), 10);
+  const m = parseInt(hhmm.slice(2, 4), 10);
+  if (isNaN(h) || isNaN(m)) return -1;
+  return h * 60 + m;
+}
+
+// 도착편/출발편의 상세 노선 설명 문자열 생성 (최종 출도착지 + 경유지 모두 명확히 표시)
+function formatFullRouteDetail(flt, isArr) {
+  const mainCode = extract3CodeFromText(flt.location);
+  const viaCode = flt.via ? extract3CodeFromText(flt.via) : '';
+  if (isArr) {
+    if (viaCode && mainCode && viaCode !== mainCode) {
+      return `[도착] 출발:${mainCode}➔경유:${viaCode}`;
+    }
+    return `[도착] 출발:${mainCode || flt.location}`;
+  } else {
+    if (viaCode && mainCode && viaCode !== mainCode) {
+      return `[출발] 경유:${viaCode}➔목적지:${mainCode}`;
+    }
+    return `[출발] 목적지:${mainCode || flt.location}`;
+  }
+}
+
 // 인천공항 개별 ARR/DEP 리스트를 현장 화이트보드(SPOT 기준 Turnaround) 행으로 병합
 function buildWhiteboardRowsFromLive(arrList, depList) {
   const boardRows = [];
   const usedDepIndices = new Set();
 
-  // 1) 도착편(ARR) 기준으로 동일 SPOT 및 이후 시간의 출발편(DEP) 페어링
+  // 1) 도착편(ARR) 기준으로 동일 SPOT 및 6시간(360분) 이내 출발편(DEP)만 페어링
   arrList.forEach((arr, aIdx) => {
     const isUps = isUpsFlight(arr);
     const arrShort = isUps ? shortUpsFltNo(arr.flightNo) : arr.flightNo;
@@ -1274,12 +1300,20 @@ function buildWhiteboardRowsFromLive(arrList, depList) {
 
     let matchedDep = null;
     if (arr.spot) {
+      const arrT = formatTo4DigitTime(arr.actualTime || arr.schedTime) || '0000';
+      const arrMin = hhmmToMinutes(arrT);
+
       const depIdx = depList.findIndex((dep, dIdx) => {
         if (usedDepIndices.has(dIdx)) return false;
         if (dep.spot !== arr.spot) return false;
         if (dep.airline !== arr.airline) return false;
-        const arrT = formatTo4DigitTime(arr.actualTime || arr.schedTime) || '0000';
         const depT = formatTo4DigitTime(dep.schedTime || dep.actualTime) || '2359';
+        const depMin = hhmmToMinutes(depT);
+        if (arrMin !== -1 && depMin !== -1) {
+          const diff = depMin - arrMin;
+          // 동일 기체 조업(Turnaround)은 도착 후 0분~360분(6시간) 이내 출발편만 매칭
+          return diff >= 0 && diff <= 360;
+        }
         return depT >= arrT;
       });
       if (depIdx !== -1) {
@@ -1289,6 +1323,10 @@ function buildWhiteboardRowsFromLive(arrList, depList) {
     }
 
     const presetArr = UPS_FLIGHT_PRESETS[arrShort] || {};
+    const arrMainCode = extract3CodeFromText(arr.location);
+    const arrViaCode = arr.via ? extract3CodeFromText(arr.via) : '';
+    // 실제 공항 데이터의 직전 기항지(경유지) 또는 출발지를 최우선 사용 (하드코딩 덮어쓰기 방지!)
+    const arrImmediateCode = arrViaCode || arrMainCode || arr.route3Code || presetArr.origin || 'ICN';
 
     if (matchedDep) {
       const depShort = isUps ? shortUpsFltNo(matchedDep.flightNo) : matchedDep.flightNo;
@@ -1299,9 +1337,12 @@ function buildWhiteboardRowsFromLive(arrList, depList) {
           ? `${matchedDep.state || '변경'} ${matchedDep.actualTime}`
           : matchedDep.state || '';
 
-      const origCode = presetArr.origin || arr.route3Code || 'ICN';
-      const destCode = presetDep.dest || matchedDep.route3Code || 'ICN';
+      const depMainCode = extract3CodeFromText(matchedDep.location);
+      const depViaCode = matchedDep.via ? extract3CodeFromText(matchedDep.via) : '';
+      const depImmediateCode = depViaCode || depMainCode || matchedDep.route3Code || presetDep.dest || 'ICN';
+
       const aircraft = presetArr.aircraft || presetDep.aircraft || (isUps ? '748' : '-');
+      const fullRouteNote = `${formatFullRouteDetail(arr, true)} ▶ ${formatFullRouteDetail(matchedDep, false)}`;
 
       boardRows.push({
         id: `live-pair-${arr.spot}-${arrShort}-${depShort}-${aIdx}`,
@@ -1312,14 +1353,19 @@ function buildWhiteboardRowsFromLive(arrList, depList) {
         ataSub,
         std: std4,
         atdSub,
-        originDest: `${origCode}/${destCode}`,
+        originDest: `${arrImmediateCode}/${depImmediateCode}`,
         airline: arr.airline,
         state: [arr.state, matchedDep.state].filter(Boolean).join(' · '),
-        memo: `${arr.flightNo} ➔ ${matchedDep.flightNo} (${arr.terminal})`
+        memo: fullRouteNote
       });
     } else {
-      const origCode = presetArr.origin || arr.route3Code || '';
+      // 단독 도착편: 경유지와 최종출발지가 다르면 "HNL(SDF)" 형태로 둘 다 명확히 표시
+      const origDisplay =
+        arrViaCode && arrMainCode && arrViaCode !== arrMainCode
+          ? `${arrViaCode}(${arrMainCode})`
+          : arrImmediateCode;
       const aircraft = presetArr.aircraft || (isUps ? '748' : '-');
+
       boardRows.push({
         id: `live-arr-${arr.spot || 'nospot'}-${arrShort}-${aIdx}`,
         spot: arr.spot || '',
@@ -1329,15 +1375,15 @@ function buildWhiteboardRowsFromLive(arrList, depList) {
         ataSub,
         std: '',
         atdSub: '',
-        originDest: origCode,
+        originDest: origDisplay,
         airline: arr.airline,
         state: arr.state || '도착예정',
-        memo: `${arr.flightNo} 도착편 (${arr.location})`
+        memo: `${formatFullRouteDetail(arr, true)} (${arr.flightNo})`
       });
     }
   });
 
-  // 2) 페어링되지 않은 단독 출발편(DEP) 추가 (예: 631 스팟 195편 등)
+  // 2) 페어링되지 않은 단독 출발편(DEP) 추가
   depList.forEach((dep, dIdx) => {
     if (usedDepIndices.has(dIdx)) return;
     const isUps = isUpsFlight(dep);
@@ -1348,8 +1394,16 @@ function buildWhiteboardRowsFromLive(arrList, depList) {
       dep.actualTime && dep.actualTime !== dep.schedTime
         ? `${dep.state || '변경'} ${dep.actualTime}`
         : dep.state || '';
-    const destCode = presetDep.dest || dep.route3Code || '';
-    const aircraft = presetDep.aircraft || (isUps ? '767' : '-');
+
+    const depMainCode = extract3CodeFromText(dep.location);
+    const depViaCode = dep.via ? extract3CodeFromText(dep.via) : '';
+    const depImmediateCode = depViaCode || depMainCode || dep.route3Code || presetDep.dest || '';
+    const destDisplay =
+      depViaCode && depMainCode && depViaCode !== depMainCode
+        ? `${depViaCode}(${depMainCode})`
+        : depImmediateCode;
+
+    const aircraft = presetDep.aircraft || (isUps ? '748' : '-');
 
     boardRows.push({
       id: `live-dep-${dep.spot || 'nospot'}-${depShort}-${dIdx}`,
@@ -1360,14 +1414,14 @@ function buildWhiteboardRowsFromLive(arrList, depList) {
       ataSub: '',
       std: std4,
       atdSub,
-      originDest: destCode,
+      originDest: destDisplay,
       airline: dep.airline,
       state: dep.state || '출발예정',
-      memo: `${dep.flightNo} 출발편 (${dep.location})`
+      memo: `${formatFullRouteDetail(dep, false)} (${dep.flightNo})`
     });
   });
 
-  // UPS 편 우선, 그 다음 SPOT 및 시간순 정렬
+  // UPS 편 우선, 그 다음 시간순 정렬
   return boardRows.sort((a, b) => {
     const uA = isUpsFlight(a) ? 0 : 1;
     const uB = isUpsFlight(b) ? 0 : 1;
@@ -1589,6 +1643,12 @@ function switchMode(newMode) {
     fabAddText.textContent = '＋ 현황판 행 추가';
     searchInput.placeholder = 'SPOT(631, 632), FLT/NO(37/174, 195), 기종(748), ORIGIN/DEST(CGO) 검색...';
     updatePinnedScheduleBannerVisibility();
+
+    // 탭 진입 시 선택된 날짜의 실시간 스케줄 자동 동기화
+    const targetDate = (flightDateInput.value || getTodayInputDate()).replace(/-/g, '');
+    if (lastSyncedDateKey !== targetDate) {
+      syncLiveIcnFlights(true);
+    }
   }
 
   render();
