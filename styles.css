@@ -678,6 +678,219 @@ body {
   pointer-events: none;
 }
 
+.btn-sched-img {
+  background: #38bdf8;
+  color: #0f172a;
+  border: none;
+  border-radius: 8px;
+  padding: 6px 10px;
+  font-size: 0.76rem;
+  font-weight: 800;
+  cursor: pointer;
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  transition: transform 0.12s;
+}
+
+.btn-sched-img:active {
+  transform: scale(0.96);
+}
+
+/* 등록된 스케줄 원본 이미지 고정 배너 */
+.pinned-sched-banner {
+  margin: 4px 12px 8px;
+  background: #ffffff;
+  border: 1.5px solid #38bdf8;
+  border-radius: 12px;
+  padding: 8px 10px;
+  box-shadow: var(--shadow-sm);
+}
+
+.pinned-sched-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 6px;
+}
+
+.pinned-sched-title {
+  font-size: 0.78rem;
+  font-weight: 800;
+  color: #0369a1;
+}
+
+.pinned-sched-actions {
+  display: flex;
+  gap: 5px;
+}
+
+.btn-pinned-act {
+  background: #f1f5f9;
+  border: 1px solid #cbd5e1;
+  color: #334155;
+  border-radius: 6px;
+  padding: 3px 7px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.btn-pinned-act.danger {
+  background: #fef2f2;
+  border-color: #fecaca;
+  color: #dc2626;
+}
+
+.pinned-sched-thumb {
+  width: 100%;
+  max-height: 150px;
+  object-fit: contain;
+  background: #0f172a;
+  border-radius: 8px;
+  cursor: pointer;
+  display: block;
+}
+
+/* 스케줄 이미지 등록 · 자동 인식 모달 */
+.sched-img-preview-box {
+  width: 100%;
+  min-height: 130px;
+  max-height: 210px;
+  border: 2px dashed #cbd5e1;
+  border-radius: 12px;
+  background: #0f172a;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 8px;
+}
+
+.sched-img-preview {
+  width: 100%;
+  max-height: 206px;
+  object-fit: contain;
+}
+
+.sched-ocr-status {
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  color: #1e40af;
+  border-radius: 8px;
+  padding: 7px 10px;
+  font-size: 0.76rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.btn-rerun-ocr {
+  background: #2563eb;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 3px 8px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.sched-extract-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  margin-bottom: 6px;
+  flex-wrap: wrap;
+}
+
+.sched-extract-tools {
+  display: flex;
+  gap: 5px;
+}
+
+.btn-mini-tool {
+  background: #f1f5f9;
+  border: 1px solid #cbd5e1;
+  color: #1e293b;
+  border-radius: 6px;
+  padding: 4px 8px;
+  font-size: 0.73rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.sched-edit-table-wrap {
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+  overflow: hidden;
+  background: #fff;
+}
+
+.sched-edit-thead {
+  display: grid;
+  grid-template-columns: 46px 1.15fr 44px 0.9fr 0.9fr 1.15fr 28px;
+  background: #2e7d5b;
+  color: #fff;
+  font-size: 0.68rem;
+  font-weight: 800;
+  text-align: center;
+  padding: 6px 2px;
+}
+
+.sched-edit-tbody {
+  display: flex;
+  flex-direction: column;
+  max-height: 220px;
+  overflow-y: auto;
+}
+
+.sched-edit-row {
+  display: grid;
+  grid-template-columns: 46px 1.15fr 44px 0.9fr 0.9fr 1.15fr 28px;
+  gap: 3px;
+  padding: 5px 4px;
+  border-bottom: 1px solid #e2e8f0;
+  align-items: center;
+}
+
+.sched-edit-row input {
+  width: 100%;
+  height: 32px;
+  padding: 0 4px;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  font-size: 0.78rem;
+  font-weight: 800;
+  text-align: center;
+  text-transform: uppercase;
+  font-family: "SF Mono", "Roboto Mono", Consolas, monospace;
+  background: #f8fafc;
+}
+
+.sched-edit-row input:focus {
+  border-color: #2563eb;
+  background: #fff;
+  outline: none;
+}
+
+.btn-sched-row-del {
+  background: #fef2f2;
+  color: #dc2626;
+  border: 1px solid #fecaca;
+  border-radius: 6px;
+  height: 30px;
+  font-size: 0.75rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+
 /* ==========================================
    현장 화이트보드 조업 현황판 (SPOT | FLT/NO | 기종 | STA/ATA | STD/ATD | ORIGIN/DEST)
    ========================================== */

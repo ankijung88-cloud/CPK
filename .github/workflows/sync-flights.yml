@@ -1,0 +1,74 @@
+name: Sync Incheon Airport Live Cargo Flights
+
+on:
+  schedule:
+    - cron: '*/30 * * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Fetch latest ICN cargo schedule
+        shell: pwsh
+        run: |
+          function Fetch-DayJson($d) {
+            $result = @{ arr = @(); dep = @() }
+            foreach ($type in @("ARR", "DEP")) {
+              $url = if ($type -eq "DEP") {
+                "https://www.airport.kr/depCargo/ap_ko/depCargoSchList.do?daySel=$d&fromTime=0000&toTime=2359"
+              } else {
+                "https://www.airport.kr/arrCargo/ap_ko/arrCargoSchList.do?daySel=$d&fromTime=0000&toTime=2359"
+              }
+              try {
+                $res = Invoke-WebRequest -Uri $url -UseBasicParsing -TimeoutSec 15
+                $rows = [regex]::Matches($res.Content, '(?s)<div id="afs_[^"]+" class="toggle">(.*?)<div class="detail"')
+                $list = @()
+                foreach ($m in $rows) {
+                  $html = $m.Groups[1].Value
+                  $tActual = [regex]::Match($html, '<strong id="column1-\d+">(.*?)</strong>').Groups[1].Value.Trim()
+                  $tSched = [regex]::Match($html, '<div class="time">.*?<span>(.*?)</span>', 'Singleline').Groups[1].Value.Trim()
+                  if (-not $tSched) { $tSched = $tActual }
+                  $via = [regex]::Match($html, '<span title="([^"]+)">\(경유\)</span>').Groups[1].Value.Trim()
+                  $locRaw = [regex]::Match($html, '<div class="location">(.*?)</div>', 'Singleline').Groups[1].Value
+                  $locClean = (($locRaw -replace '<span.*?>.*?</span>','' -replace '<i.*?>.*?</i>','' -replace '<.*?>','') -replace '\s+',' ').Trim()
+                  $names = [regex]::Matches($html, '<span class="name">(.*?)</span>', 'Singleline')
+                  $flt = if ($names.Count -ge 1) { ($names[0].Groups[1].Value -replace '<.*?>','').Trim() } else { "" }
+                  $air = if ($names.Count -ge 2) { (($names[1].Groups[1].Value -replace '<.*?>','') -replace '\s+',' ').Trim() } else { "" }
+                  $term = (([regex]::Match($html, '<div class="terminal".*?>(.*?)</div>', 'Singleline').Groups[1].Value -replace '<i.*?>.*?</i>','' -replace '<.*?>','') -replace '\s+',' ').Trim()
+                  $spot = (([regex]::Match($html, '<div class="jugi".*?>(.*?)</div>', 'Singleline').Groups[1].Value -replace '<i.*?>.*?</i>','' -replace '<.*?>','') -replace '\s+',' ').Trim()
+                  $state = (([regex]::Match($html, '<div class="state">(.*?)</div>', 'Singleline').Groups[1].Value -replace '<i.*?>.*?</i>','' -replace '<.*?>','') -replace '\s+',' ').Trim()
+                  if (-not $state) { $state = "예정" }
+                  if ($flt) {
+                    $list += @{
+                      dir = $type; flightNo = $flt; airline = $air; actualTime = $tActual; schedTime = $tSched
+                      location = $locClean; via = $via; terminal = $term; spot = $spot; state = $state
+                    }
+                  }
+                }
+                if ($type -eq "ARR") { $result.arr = $list } else { $result.dep = $list }
+              } catch {}
+            }
+            return $result
+          }
+          $allDates = @{}
+          $base = (Get-Date).AddHours(9)
+          for ($i = -1; $i -le 3; $i++) {
+            $d = $base.AddDays($i).ToString("yyyyMMdd")
+            $allDates[$d] = Fetch-DayJson $d
+          }
+          if ($allDates.Keys.Count -gt 0) {
+            $payload = @{ updatedAt = $base.ToString("yyyy-MM-dd HH:mm"); dates = $allDates }
+            $json = $payload | ConvertTo-Json -Depth 6 -Compress
+            Set-Content -Path "live-flights.json" -Value $json -Encoding UTF8
+          }
+      - name: Commit and Push if updated
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add live-flights.json
+          git diff --staged --quiet || (git commit -m "chore: update live-flights.json" && git push origin main && git push origin main:gh-pages)
