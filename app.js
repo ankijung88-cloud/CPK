@@ -3333,7 +3333,15 @@ function loadSopData() {
     if (raw) {
       const parsed = JSON.parse(raw);
       if (Array.isArray(parsed) && parsed.length > 0) {
-        sopItems = parsed;
+        // 만약 기존 저장 데이터에 지게차 작업 절차가 없다면 자동 병합
+        const hasForklift = parsed.some((it) => it.phase === '지게차 작업(Forklift)');
+        if (!hasForklift) {
+          const forkliftDefaults = INITIAL_SOP_DATA.filter((it) => it.phase === '지게차 작업(Forklift)');
+          sopItems = [...parsed, ...forkliftDefaults];
+          saveSopData();
+        } else {
+          sopItems = parsed;
+        }
         return;
       }
     }
@@ -3390,20 +3398,21 @@ function updateSopProgressAndTabs() {
     sopProgressBarFill.style.width = `${pct}%`;
   }
 
+  // 지게차 작업 탭을 가장 앞쪽에 배치하고 모든 단계 탭이 줄바꿈으로 한눈에 보이도록 구성
   const defaultPhases = [
+    '지게차 작업(Forklift)',
     '도착 전 준비',
     '항공기 도착·접안',
     '하기 작업(Off-load)',
     '탑재 작업(On-load)',
-    '출발·조업 마감',
-    '지게차 작업(Forklift)'
+    '출발·조업 마감'
   ];
   const allPhases = new Set(defaultPhases);
   sopItems.forEach((it) => {
     if (it.phase) allPhases.add(it.phase);
   });
 
-  const phaseCounts = { ALL: 0 };
+  const phaseCounts = { ALL: 0, AIRCRAFT: 0 };
   allPhases.forEach((p) => {
     phaseCounts[p] = 0;
   });
@@ -3411,27 +3420,54 @@ function updateSopProgressAndTabs() {
   sopItems.forEach((it) => {
     if (matchesSopItem(it, searchQuery)) {
       phaseCounts.ALL++;
+      if (it.phase !== '지게차 작업(Forklift)') {
+        phaseCounts.AIRCRAFT++;
+      }
       if (it.phase) {
         phaseCounts[it.phase] = (phaseCounts[it.phase] || 0) + 1;
       }
     }
   });
 
-  if (currentSopPhase !== 'ALL' && !allPhases.has(currentSopPhase)) {
+  if (currentSopPhase !== 'ALL' && currentSopPhase !== 'AIRCRAFT' && !allPhases.has(currentSopPhase)) {
     currentSopPhase = 'ALL';
+  }
+
+  // 상단 3버튼(전체 절차서 / 항공기 조업 / 지게차 작업) 카운트 및 활성 상태 동기화
+  const sopMainCatBar = document.getElementById('sopMainCatBar');
+  if (sopMainCatBar) {
+    sopMainCatBar.querySelectorAll('.sop-cat-btn').forEach((btn) => {
+      const cat = btn.dataset.sopCat;
+      if (cat === 'ALL') {
+        btn.innerHTML = `📋 전체 절차 (${phaseCounts.ALL})`;
+        btn.classList.toggle('active', currentSopPhase === 'ALL');
+      } else if (cat === 'AIRCRAFT') {
+        btn.innerHTML = `✈️ 항공기 조업 (${phaseCounts.AIRCRAFT})`;
+        btn.classList.toggle(
+          'active',
+          currentSopPhase === 'AIRCRAFT' ||
+            (currentSopPhase !== 'ALL' && currentSopPhase !== '지게차 작업(Forklift)')
+        );
+      } else if (cat === '지게차 작업(Forklift)') {
+        btn.innerHTML = `🚜 지게차 작업 (${phaseCounts['지게차 작업(Forklift)'] || 0})`;
+        btn.classList.toggle('active', currentSopPhase === '지게차 작업(Forklift)');
+      }
+    });
   }
 
   let html = `
     <button type="button" class="tab-btn ${currentSopPhase === 'ALL' ? 'active' : ''}" data-sop-phase="ALL">
-      전체 절차 <span class="count">${phaseCounts.ALL}</span>
+      전체 <span class="count">${phaseCounts.ALL}</span>
     </button>
   `;
 
   Array.from(allPhases).forEach((p) => {
     const activeClass = currentSopPhase === p ? 'active' : '';
+    const isForklift = p === '지게차 작업(Forklift)';
+    const label = isForklift ? '🚜 지게차 작업' : p;
     html += `
-      <button type="button" class="tab-btn ${activeClass}" data-sop-phase="${p}">
-        ${p} <span class="count">${phaseCounts[p] || 0}</span>
+      <button type="button" class="tab-btn ${isForklift ? 'forklift-tab' : ''} ${activeClass}" data-sop-phase="${p}">
+        ${label} <span class="count">${phaseCounts[p] || 0}</span>
       </button>
     `;
   });
@@ -3452,11 +3488,23 @@ function renderSopMode() {
   }));
 
   const filtered = indexedItems.filter((item) => {
-    const phaseOk = currentSopPhase === 'ALL' || item.phase === currentSopPhase;
+    let phaseOk = true;
+    if (currentSopPhase === 'AIRCRAFT') {
+      phaseOk = item.phase !== '지게차 작업(Forklift)';
+    } else if (currentSopPhase !== 'ALL') {
+      phaseOk = item.phase === currentSopPhase;
+    }
     return phaseOk && matchesSopItem(item, searchQuery);
   });
 
-  const phaseLabel = currentSopPhase === 'ALL' ? 'UPS 전체 조업 절차서' : currentSopPhase;
+  const phaseLabel =
+    currentSopPhase === 'ALL'
+      ? 'UPS 전체 조업 절차서'
+      : currentSopPhase === 'AIRCRAFT'
+      ? '✈️ 항공기 조업 절차서'
+      : currentSopPhase === '지게차 작업(Forklift)'
+      ? '🚜 지게차 작업 절차서'
+      : currentSopPhase;
   statusText.textContent = `${phaseLabel} · ${filtered.length}단계`;
   statusHint.textContent = '▲/▼ 순서변경 · 카드 터치 시 내용 수정/삭제';
 
@@ -3642,6 +3690,16 @@ if (sopPhaseTabs) {
     const btn = e.target.closest('.tab-btn');
     if (!btn) return;
     currentSopPhase = btn.dataset.sopPhase;
+    render();
+  });
+}
+
+const sopMainCatBarEl = document.getElementById('sopMainCatBar');
+if (sopMainCatBarEl) {
+  sopMainCatBarEl.addEventListener('click', (e) => {
+    const btn = e.target.closest('.sop-cat-btn');
+    if (!btn) return;
+    currentSopPhase = btn.dataset.sopCat;
     render();
   });
 }

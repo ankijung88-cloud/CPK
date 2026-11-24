@@ -960,6 +960,70 @@ body {
   margin-top: 0;
 }
 
+/* 항공기 조업 vs 지게차 작업 상단 빠른 전환 바 */
+.sop-main-cat-bar {
+  display: grid;
+  grid-template-columns: 0.9fr 1.1fr 1.1fr;
+  gap: 6px;
+}
+
+.sop-cat-btn {
+  background: rgba(255, 255, 255, 0.12);
+  border: 1.5px solid rgba(255, 255, 255, 0.18);
+  color: #e2e8f0;
+  padding: 9px 6px;
+  border-radius: 10px;
+  font-size: 0.8rem;
+  font-weight: 800;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.15s;
+}
+
+.sop-cat-btn.forklift-highlight {
+  border-color: rgba(251, 191, 36, 0.65);
+  color: #fde047;
+}
+
+.sop-cat-btn.active {
+  background: #38bdf8;
+  color: #0f172a;
+  border-color: #38bdf8;
+  box-shadow: 0 2px 8px rgba(56, 189, 248, 0.35);
+}
+
+.sop-cat-btn.forklift-highlight.active {
+  background: #fbbf24;
+  color: #351c15;
+  border-color: #fbbf24;
+  box-shadow: 0 2px 8px rgba(251, 191, 36, 0.4);
+}
+
+/* 조업 단계 탭 (가로 스크롤로 숨겨지지 않고 한눈에 다 보이도록 줄바꿈 그리드 적용) */
+.sop-phase-tabs-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-top: 2px;
+}
+
+.sop-phase-tabs-grid .tab-btn {
+  padding: 6px 9px;
+  font-size: 0.76rem;
+  flex: 1 1 auto;
+}
+
+.sop-phase-tabs-grid .tab-btn.forklift-tab {
+  border-color: rgba(251, 191, 36, 0.55);
+  color: #fde047;
+}
+
+.sop-phase-tabs-grid .tab-btn.forklift-tab.active {
+  background: #fbbf24;
+  color: #351c15;
+  border-color: #fbbf24;
+}
+
 .sop-card {
   background: var(--surface);
   border: 1.5px solid var(--border);
