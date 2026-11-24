@@ -120,13 +120,18 @@ body {
   grid-template-columns: repeat(3, 1fr);
 }
 
+.mode-switch.mode-switch-4 {
+  grid-template-columns: repeat(4, 1fr);
+  gap: 4px;
+}
+
 .mode-btn {
   background: transparent;
   border: none;
   color: #94a3b8;
-  padding: 9px 4px;
+  padding: 8px 2px;
   border-radius: 9px;
-  font-size: 0.8rem;
+  font-size: 0.74rem;
   font-weight: 800;
   cursor: pointer;
   white-space: nowrap;
@@ -889,6 +894,280 @@ body {
   font-size: 0.75rem;
   font-weight: 800;
   cursor: pointer;
+}
+
+/* ==========================================
+   UPS 항공조업 절차서 (SOP) 컨트롤 및 카드 스타일
+   ========================================== */
+.sop-controls {
+  margin-top: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.sop-progress-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  background: rgba(15, 23, 42, 0.45);
+  padding: 7px 10px;
+  border-radius: 10px;
+}
+
+.sop-progress-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+#sopProgressText {
+  font-size: 0.76rem;
+  font-weight: 800;
+  color: #e2e8f0;
+}
+
+.sop-progress-bar-bg {
+  width: 100%;
+  height: 6px;
+  background: rgba(255, 255, 255, 0.16);
+  border-radius: 99px;
+  overflow: hidden;
+}
+
+.sop-progress-bar-fill {
+  height: 100%;
+  background: #22c55e;
+  border-radius: 99px;
+  transition: width 0.2s ease;
+}
+
+.btn-sop-check-reset {
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #f8fafc;
+  border-radius: 8px;
+  padding: 5px 9px;
+  font-size: 0.73rem;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.sop-phase-tabs {
+  margin-top: 0;
+}
+
+.sop-card {
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  border-left: 5px solid #2563eb;
+  border-radius: 14px;
+  padding: 13px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  box-shadow: var(--shadow-sm);
+  transition: border-color 0.15s, background-color 0.15s;
+}
+
+.sop-card.checked {
+  border-left-color: #16a34a;
+  background: #f8fafc;
+}
+
+.sop-card-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.sop-head-left {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  flex: 1;
+}
+
+.sop-check-btn {
+  width: 26px;
+  height: 26px;
+  border-radius: 7px;
+  border: 2px solid #94a3b8;
+  background: #fff;
+  color: transparent;
+  font-size: 0.9rem;
+  font-weight: 900;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: all 0.15s;
+}
+
+.sop-card.checked .sop-check-btn {
+  background: #16a34a;
+  border-color: #16a34a;
+  color: #fff;
+}
+
+.sop-step-badge {
+  background: #1e293b;
+  color: #fbbf24;
+  font-family: "SF Mono", "Roboto Mono", Consolas, monospace;
+  font-size: 0.76rem;
+  font-weight: 900;
+  padding: 3px 8px;
+  border-radius: 6px;
+  letter-spacing: 0.03em;
+}
+
+.sop-phase-badge {
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  color: #1d4ed8;
+  font-size: 0.72rem;
+  font-weight: 800;
+  padding: 2px 7px;
+  border-radius: 6px;
+}
+
+.sop-order-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.btn-sop-move {
+  width: 28px;
+  height: 28px;
+  border-radius: 7px;
+  border: 1px solid #cbd5e1;
+  background: #f8fafc;
+  color: #334155;
+  font-size: 0.74rem;
+  font-weight: 900;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.btn-sop-move:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.btn-sop-move:not(:disabled):active {
+  background: #e2e8f0;
+}
+
+.sop-title {
+  font-size: 1.02rem;
+  font-weight: 900;
+  color: #0f172a;
+  line-height: 1.35;
+  cursor: pointer;
+}
+
+.sop-card.checked .sop-title {
+  color: #475569;
+  text-decoration: line-through;
+}
+
+.sop-content {
+  font-size: 0.86rem;
+  color: #334155;
+  line-height: 1.52;
+  white-space: pre-line;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 9px 11px;
+  cursor: pointer;
+}
+
+.sop-caution {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #b91c1c;
+  font-size: 0.8rem;
+  font-weight: 800;
+  border-radius: 8px;
+  padding: 7px 10px;
+  line-height: 1.4;
+}
+
+.sop-photo-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.sop-photo-thumb {
+  width: 100%;
+  max-height: 145px;
+  object-fit: cover;
+  border-radius: 9px;
+  border: 1px solid #cbd5e1;
+  cursor: pointer;
+}
+
+.sop-card-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-top: 1px dashed #e2e8f0;
+  padding-top: 7px;
+  gap: 8px;
+}
+
+.btn-sop-insert-after {
+  background: #f1f5f9;
+  border: 1px solid #cbd5e1;
+  color: #334155;
+  font-size: 0.73rem;
+  font-weight: 800;
+  padding: 4px 9px;
+  border-radius: 7px;
+  cursor: pointer;
+}
+
+.btn-sop-edit-text {
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  color: #1d4ed8;
+  font-size: 0.74rem;
+  font-weight: 800;
+  padding: 4px 10px;
+  border-radius: 7px;
+  cursor: pointer;
+}
+
+.form-textarea {
+  width: 100%;
+  padding: 10px 12px;
+  font-size: 0.92rem;
+  font-weight: 600;
+  font-family: inherit;
+  border: 1.5px solid var(--border);
+  border-radius: 10px;
+  outline: none;
+  color: var(--text-primary);
+  background: #f8fafc;
+  resize: vertical;
+  line-height: 1.45;
+}
+
+.form-textarea:focus {
+  border-color: var(--primary);
+  background: #ffffff;
 }
 
 /* ==========================================

@@ -885,8 +885,10 @@ function render() {
     renderCodeMode();
   } else if (appMode === 'ULD') {
     renderUldMode();
-  } else {
+  } else if (appMode === 'FLIGHT') {
     renderFlightMode();
+  } else {
+    renderSopMode();
   }
 }
 
@@ -1658,17 +1660,20 @@ async function syncLiveIcnFlights(silent = false) {
   }
 }
 
-// 모드 전환 (CODE <-> ULD <-> FLIGHT)
+// 모드 전환 (CODE <-> ULD <-> FLIGHT <-> SOP)
 function switchMode(newMode) {
   appMode = newMode;
   modeSwitch.querySelectorAll('.mode-btn').forEach((btn) => {
     btn.classList.toggle('active', btn.dataset.mode === newMode);
   });
 
+  const sopControlsEl = document.getElementById('sopControls');
+
   if (appMode === 'CODE') {
     regionTabs.style.display = 'grid';
     uldTypeTabs.style.display = 'none';
     flightControls.style.display = 'none';
+    if (sopControlsEl) sopControlsEl.style.display = 'none';
     codeListHeader.style.display = 'grid';
     flightBoardHeader.style.display = 'none';
     typeDictBtn.style.display = 'none';
@@ -1681,6 +1686,7 @@ function switchMode(newMode) {
     regionTabs.style.display = 'none';
     uldTypeTabs.style.display = 'flex';
     flightControls.style.display = 'none';
+    if (sopControlsEl) sopControlsEl.style.display = 'none';
     codeListHeader.style.display = 'none';
     flightBoardHeader.style.display = 'none';
     typeDictBtn.style.display = 'inline-flex';
@@ -1689,10 +1695,11 @@ function switchMode(newMode) {
     fabAddText.textContent = '＋ ULD 추가';
     searchInput.placeholder = '현장명칭(L9, A1, M1), ULD타입(AMP, AAD), 규격, 기종 검색...';
     updatePinnedScheduleBannerVisibility();
-  } else {
+  } else if (appMode === 'FLIGHT') {
     regionTabs.style.display = 'none';
     uldTypeTabs.style.display = 'none';
     flightControls.style.display = 'flex';
+    if (sopControlsEl) sopControlsEl.style.display = 'none';
     codeListHeader.style.display = 'none';
     flightBoardHeader.style.display = 'grid';
     typeDictBtn.style.display = 'none';
@@ -1707,6 +1714,19 @@ function switchMode(newMode) {
     if (lastSyncedDateKey !== targetDate) {
       syncLiveIcnFlights(true);
     }
+  } else {
+    regionTabs.style.display = 'none';
+    uldTypeTabs.style.display = 'none';
+    flightControls.style.display = 'none';
+    if (sopControlsEl) sopControlsEl.style.display = 'flex';
+    codeListHeader.style.display = 'none';
+    flightBoardHeader.style.display = 'none';
+    typeDictBtn.style.display = 'none';
+    icnOfficialLinkBtn.style.display = 'none';
+    fabCameraBtn.style.display = 'none';
+    fabAddText.textContent = '＋ 새 절차 추가';
+    searchInput.placeholder = '조업 절차 제목, 내용, 단계(하기, 탑재, 로더, 락) 검색...';
+    updatePinnedScheduleBannerVisibility();
   }
 
   render();
@@ -2241,8 +2261,10 @@ fabAddBtn.addEventListener('click', () => {
     openModalForCreate(searchQuery.trim());
   } else if (appMode === 'ULD') {
     openUldModalForCreate(searchQuery.trim());
-  } else {
+  } else if (appMode === 'FLIGHT') {
     openFlightModalForCreate(searchQuery.trim());
+  } else {
+    openSopModalForCreate();
   }
 });
 
@@ -2551,13 +2573,20 @@ resetDataBtn.addEventListener('click', () => {
       render();
       showToast('ULD 조업 장비 기준표(8종)로 복원되었습니다.');
     }
-  } else {
+  } else if (appMode === 'FLIGHT') {
     if (confirm('항공편 현황판을 기본 화이트보드(631, 632, 636, 629, 630) 상태로 복원하시겠습니까?')) {
       flightItems = JSON.parse(JSON.stringify(INITIAL_FLIGHT_DATA));
       flightLastSync = '현장 현황판 기본 복원됨';
       saveFlightData();
       render();
       showToast('현장 화이트보드 기본 현황판으로 복원되었습니다.');
+    }
+  } else {
+    if (confirm('추가·수정한 조업 절차서를 초기화하고 UPS 기본 표준 조업 절차서(10단계)로 복원하시겠습니까?')) {
+      sopItems = JSON.parse(JSON.stringify(INITIAL_SOP_DATA));
+      saveSopData();
+      render();
+      showToast('UPS 표준 조업 절차서(10단계)로 복원되었습니다.');
     }
   }
 });
@@ -3101,6 +3130,637 @@ if (removePinnedSchedBtn) {
   });
 }
 
+// ==========================================
+// [모드 4] UPS 항공조업 절차서 (SOP) 관리 및 순서·내용 CRUD 엔진
+// ==========================================
+const SOP_STORAGE_KEY = 'cpk_ups_sop_steps_v1';
+
+const INITIAL_SOP_DATA = [
+  {
+    id: 'sop-step-1',
+    phase: '도착 전 준비',
+    title: '조업 브리핑 및 당일 편명 · SPOT · 기종 확인',
+    content:
+      '1) 일일 화물 조업 현황판에서 배정 SPOT(629~636), FLT/NO(35/99, 11/11, 196/174, 173/195 등), 기종(748/744/767) 및 STA/STD 확인\n2) 작업자 개인보호구(안전조끼, 안전화, 청력보호구, 안전모) 착용 상태 및 작업 역할 분담 점검\n3) 당일 특수화물(DG, 온도관리, 생동물 등) 및 주의사항 공유',
+    caution: '기종(748 vs 744 vs 767)에 따라 탑재 가능 ULD와 포지션 제한이 다르므로 반드시 기종을 먼저 확인!',
+    photo: '',
+    checked: false
+  },
+  {
+    id: 'sop-step-2',
+    phase: '도착 전 준비',
+    title: '주기장(SPOT) FOD 점검 및 조업 장비 · DOLLY 배치',
+    content:
+      '1) 항공기 도착 20분 전까지 배정 SPOT 내 FOD(이물질·결박끈·목재 조각 등) 완전 제거\n2) 하이로더(Main Deck / Lower Deck Loader), 터그카, 컨베이어 벨트 작동 상태 사전 점검\n3) 하기용 공 돌리(DOLLY) 및 MT(빈 컨테이너/팔레트) 수량 확보 후 장비 대기선(ERA 외측) 정렬',
+    caution: '항공기 완전 정지 및 엔진 정지(Beacon Light 소등) 전까지 장비 보호구역(ERA) 내부 진입 절대 금지!',
+    photo: '',
+    checked: false
+  },
+  {
+    id: 'sop-step-3',
+    phase: '항공기 도착·접안',
+    title: '항공기 정지 · 초크(Chock) 및 세이프티 콘 설치',
+    content:
+      '1) 항공기 완전 정지, 엔진 스풀다운 및 충돌방지등(Anti-Collision Beacon) 소등 확인 후 접근\n2) 노즈 기어 및 메인 기어 전·후방에 정위치 초크(Wheel Chock) 설치\n3) 엔진 흡입구, 날개 끝(Wing Tip), 기수·기미 주변 세이프티 콘(Safety Cone) 설치\n4) 기체 외부(동체, 카고 도어 주변) 손상 여부 육안 점검(Walk-around Check)',
+    caution: '엔진 완전 정지 전 엔진 전방·후방 위험구역 접근 절대 금지!',
+    photo: '',
+    checked: false
+  },
+  {
+    id: 'sop-step-4',
+    phase: '항공기 도착·접안',
+    title: '카고 도어 오픈 및 하이로더(Main / Lower) 안전 접안',
+    content:
+      '1) Main Deck(Side/Nose) 및 Lower Deck(Fwd/Aft/Bulk) 카고 도어 개방 시 주변 간섭물 확인\n2) 유도자(Guide Man)의 명확한 수신호에 따라 하이로더를 감속 진입시켜 접안\n3) 기체 동체와 로더 범퍼 간 안전 간격 유지, 로더 수평 조절 및 스태빌라이저(Outrigger Jack) 완전 고정',
+    caution: '유도자(Guide Man) 없이 조업 장비 기체 접근 및 후진 절대 금지 (기체 접촉 파손 주의)',
+    photo: '',
+    checked: false
+  },
+  {
+    id: 'sop-step-5',
+    phase: '하기 작업(Off-load)',
+    title: '테일 팁(Tail Tip) 방지 및 ULD 하기 순서 준수',
+    content:
+      '1) Loadmaster 지시 및 하기 순서에 따라 항공기 무게중심(C.G)을 유지하며 ULD 하기 진행\n2) 기내 포지션의 가이드 및 바닥 락(Floor Lock/Latch)을 완전히 내린 뒤 로더 플랫폼으로 이동\n3) Main Deck와 Lower Deck 동시 하기 시 후방 하중 편중이 발생하지 않도록 전·후방 밸런스 유지',
+    caution: '🚨 B747(744·748) 조업 시 후방(Aft)에 중량 화물이 남은 상태에서 전방(Fwd)부터 과도하게 하기하면 기수가 들리는 Tail Tip 위험!',
+    photo: '',
+    checked: false
+  },
+  {
+    id: 'sop-step-6',
+    phase: '하기 작업(Off-load)',
+    title: '하기 ULD 상태 검수 및 돌리(DOLLY) 락 체결 · 이송',
+    content:
+      '1) 하기된 ULD(A1/AAD, A2/AAY, M1/AMJ, M1H/AMD, L9/AMP·AAZ·AAP, L11/ALP) 외관 파손 및 네트·도어 상태 확인\n2) 돌리(DOLLY)에 ULD 이적 후 돌리 스토퍼(Stopper) 및 회전 방지 락 체결 상태 2중 확인\n3) 견인 시 제한속도 준수 및 급회전 금지하여 화물 터미널로 안전 이송',
+    caution: '돌리 스토퍼(Lock) 미체결 상태로 견인 시 주행 중 ULD 이탈 사고 위험 — 출발 전 반드시 발로 락 고정 확인!',
+    photo: '',
+    checked: false
+  },
+  {
+    id: 'sop-step-7',
+    phase: '탑재 작업(On-load)',
+    title: 'Load Plan 대조 및 기종별 ULD 탑재 제한사항 확인',
+    content:
+      '1) 출발편 목적지(ORIGIN/DEST · SLIC 코드)와 Load Sheet(Weight & Balance) 상의 포지션(POS)·ULD 번호·중량 대조\n2) 탑재 전 ULD 하부 베이스(Base Plate) 변형이나 파손 여부 점검\n3) 기종별 탑재 제한 구역 및 전용 포지션 사전 확인',
+    caution:
+      '🚨 [기종별 필수 제한] 748(747-800) 기종 1, 2, 3 POS에 L9(AAZ) 탑재 절대 안됨! / 767 기종 M1H(AMD) 탑재 불가 및 M1·L9(AMP)은 Center Load 전용!',
+    photo: '',
+    checked: false
+  },
+  {
+    id: 'sop-step-8',
+    phase: '탑재 작업(On-load)',
+    title: 'Main / Lower Deck ULD 정위치 탑재 및 기내 Lock 체결',
+    content:
+      '1) Load Sheet에 지정된 정확한 포지션(POS)에 ULD를 진입시키고 정위치 안착\n2) 각 포지션의 사이드/엔드 플로어 락(Floor Locks & Restraint Latches)을 모두 세워 완전히 체결\n3) 탑재 완료 후 전 포지션 락 체결 상태를 작업자와 감독자가 교차 점검(Cross-check)',
+    caution: '단 한 곳의 기내 Floor Lock이라도 미체결 시 비행 중 화물 이동으로 항공기 안전에 치명적 위험 — 전 포지션 Lock-up 필수 확인!',
+    photo: '',
+    checked: false
+  },
+  {
+    id: 'sop-step-9',
+    phase: '출발·조업 마감',
+    title: '카고 도어 클로즈 및 하이로더 · 조업 장비 안전 이격',
+    content:
+      '1) 기내 화물칸 내부에 잔류 인원, 조업 도구, FOD가 없는지 최종 확인\n2) 하이로더 플랫폼 하강 및 스태빌라이저 수납 후 유도자 신호에 따라 안전 구역 밖으로 후진 이격\n3) Main / Lower / Bulk 카고 도어 완전 닫힘 및 외관 잠금 표시(Latch Indicator) 확인',
+    caution: '로더 후진 이격 전 기체 도어 및 날개·엔진 카울과의 간섭 여부를 유도자가 끝까지 확인!',
+    photo: '',
+    checked: false
+  },
+  {
+    id: 'sop-step-10',
+    phase: '출발·조업 마감',
+    title: '푸시백(Push-back) 지원 및 DOLLY · MT 수량 마감 보고',
+    content:
+      '1) 토우바(Towbar) 연결 상태 확인 후 세이프티 콘 및 휠 초크(Chock) 제거\n2) 주기장(SPOT) 내 최종 FOD 점검 및 푸시백 안전 구역 확보\n3) 항공기 출발 시간(ATD) 기록 및 현장 잔여 DOLLY · MT 수량 파악 후 일일 조업 현황판 마감 보고',
+    caution: '초크 제거는 반드시 항공기 브레이크 체결 및 토우바 연결이 완료된 후 실시!',
+    photo: '',
+    checked: false
+  }
+];
+
+let sopItems = [];
+let currentSopPhase = 'ALL';
+let editingSopId = null;
+let currentSopPhotoData = '';
+
+const sopPhaseTabs = document.getElementById('sopPhaseTabs');
+const sopProgressText = document.getElementById('sopProgressText');
+const sopProgressBarFill = document.getElementById('sopProgressBarFill');
+const resetSopCheckBtn = document.getElementById('resetSopCheckBtn');
+
+const sopModal = document.getElementById('sopModal');
+const sopModalTitle = document.getElementById('sopModalTitle');
+const closeSopModalBtn = document.getElementById('closeSopModalBtn');
+const sopForm = document.getElementById('sopForm');
+const sopOrderInput = document.getElementById('sopOrderInput');
+const sopPhaseSelect = document.getElementById('sopPhaseSelect');
+const sopTitleInput = document.getElementById('sopTitleInput');
+const sopContentInput = document.getElementById('sopContentInput');
+const sopCautionInput = document.getElementById('sopCautionInput');
+const sopPhotoPreview = document.getElementById('sopPhotoPreview');
+const sopPhotoPlaceholder = document.getElementById('sopPhotoPlaceholder');
+const sopCameraInput = document.getElementById('sopCameraInput');
+const sopGalleryInput = document.getElementById('sopGalleryInput');
+const removeSopPhotoBtn = document.getElementById('removeSopPhotoBtn');
+const deleteSopBtn = document.getElementById('deleteSopBtn');
+
+function loadSopData() {
+  try {
+    const raw = localStorage.getItem(SOP_STORAGE_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        sopItems = parsed;
+        return;
+      }
+    }
+  } catch (e) {
+    console.error('Failed to read SOP localStorage:', e);
+  }
+  sopItems = JSON.parse(JSON.stringify(INITIAL_SOP_DATA));
+  saveSopData();
+}
+
+function saveSopData() {
+  try {
+    localStorage.setItem(SOP_STORAGE_KEY, JSON.stringify(sopItems));
+  } catch (e) {
+    showToast('저장 공간이 부족합니다. 일부 사진을 정리해 주세요.');
+  }
+}
+
+function matchesSopItem(item, query) {
+  if (!query) return true;
+  const q = query.trim().toLowerCase();
+  if (!q) return true;
+
+  const phase = (item.phase || '').toLowerCase();
+  const title = (item.title || '').toLowerCase();
+  const content = (item.content || '').toLowerCase();
+  const caution = (item.caution || '').toLowerCase();
+
+  if (
+    phase.includes(q) ||
+    title.includes(q) ||
+    content.includes(q) ||
+    caution.includes(q)
+  ) {
+    return true;
+  }
+
+  return (
+    getChosung(title).includes(q) ||
+    getChosung(content).includes(q) ||
+    getChosung(caution).includes(q)
+  );
+}
+
+function updateSopProgressAndTabs() {
+  const totalCount = sopItems.length;
+  const checkedCount = sopItems.filter((it) => it.checked).length;
+  const pct = totalCount > 0 ? Math.round((checkedCount / totalCount) * 100) : 0;
+
+  if (sopProgressText) {
+    sopProgressText.textContent = `조업 절차 진행률: ${checkedCount} / ${totalCount} 단계 완료 (${pct}%)`;
+  }
+  if (sopProgressBarFill) {
+    sopProgressBarFill.style.width = `${pct}%`;
+  }
+
+  const defaultPhases = [
+    '도착 전 준비',
+    '항공기 도착·접안',
+    '하기 작업(Off-load)',
+    '탑재 작업(On-load)',
+    '출발·조업 마감'
+  ];
+  const allPhases = new Set(defaultPhases);
+  sopItems.forEach((it) => {
+    if (it.phase) allPhases.add(it.phase);
+  });
+
+  const phaseCounts = { ALL: 0 };
+  allPhases.forEach((p) => {
+    phaseCounts[p] = 0;
+  });
+
+  sopItems.forEach((it) => {
+    if (matchesSopItem(it, searchQuery)) {
+      phaseCounts.ALL++;
+      if (it.phase) {
+        phaseCounts[it.phase] = (phaseCounts[it.phase] || 0) + 1;
+      }
+    }
+  });
+
+  if (currentSopPhase !== 'ALL' && !allPhases.has(currentSopPhase)) {
+    currentSopPhase = 'ALL';
+  }
+
+  let html = `
+    <button type="button" class="tab-btn ${currentSopPhase === 'ALL' ? 'active' : ''}" data-sop-phase="ALL">
+      전체 절차 <span class="count">${phaseCounts.ALL}</span>
+    </button>
+  `;
+
+  Array.from(allPhases).forEach((p) => {
+    const activeClass = currentSopPhase === p ? 'active' : '';
+    html += `
+      <button type="button" class="tab-btn ${activeClass}" data-sop-phase="${p}">
+        ${p} <span class="count">${phaseCounts[p] || 0}</span>
+      </button>
+    `;
+  });
+
+  if (sopPhaseTabs) {
+    sopPhaseTabs.innerHTML = html;
+  }
+}
+
+function renderSopMode() {
+  updateSopProgressAndTabs();
+
+  // 각 항목에 전체 순서 번호(1~N) 부여 후 필터링
+  const indexedItems = sopItems.map((item, idx) => ({
+    ...item,
+    globalOrder: idx + 1,
+    globalIndex: idx
+  }));
+
+  const filtered = indexedItems.filter((item) => {
+    const phaseOk = currentSopPhase === 'ALL' || item.phase === currentSopPhase;
+    return phaseOk && matchesSopItem(item, searchQuery);
+  });
+
+  const phaseLabel = currentSopPhase === 'ALL' ? 'UPS 전체 조업 절차서' : currentSopPhase;
+  statusText.textContent = `${phaseLabel} · ${filtered.length}단계`;
+  statusHint.textContent = '▲/▼ 순서변경 · 카드 터치 시 내용 수정/삭제';
+
+  if (filtered.length === 0) {
+    resultsList.innerHTML = `
+      <div class="empty-state">
+        <div class="empty-title">등록된 조업 절차가 없습니다</div>
+        <div class="empty-desc">
+          [＋ 새 절차 추가] 버튼을 눌러 조업 절차와 순서를 자유롭게 작성해 보세요.
+        </div>
+        <button type="button" class="btn-inline-add" id="inlineAddSopBtn">＋ 새 조업 절차 추가하기</button>
+      </div>
+    `;
+    const btn = document.getElementById('inlineAddSopBtn');
+    if (btn) btn.addEventListener('click', () => openSopModalForCreate());
+    return;
+  }
+
+  resultsList.innerHTML = filtered
+    .map((item) => {
+      const stepNumStr = String(item.globalOrder).padStart(2, '0');
+      const isFirst = item.globalIndex === 0;
+      const isLast = item.globalIndex === sopItems.length - 1;
+
+      const titleHtml = highlightText(item.title, searchQuery);
+      const contentHtml = highlightText(item.content, searchQuery);
+      const phaseHtml = highlightText(item.phase || '조업절차', searchQuery);
+
+      const cautionHtml =
+        item.caution && item.caution.trim()
+          ? `<div class="sop-caution">⚠️ ${highlightText(item.caution, searchQuery)}</div>`
+          : '';
+
+      const photoHtml =
+        item.photo && item.photo.trim()
+          ? `
+            <div class="sop-photo-row" data-sop-zoom-id="${item.id}">
+              <img src="${item.photo}" class="sop-photo-thumb" alt="${item.title}" />
+            </div>
+          `
+          : '';
+
+      return `
+        <div class="sop-card ${item.checked ? 'checked' : ''}" data-sop-id="${item.id}">
+          <div class="sop-card-top">
+            <div class="sop-head-left">
+              <button
+                type="button"
+                class="sop-check-btn"
+                data-sop-check="${item.id}"
+                title="완료 체크/해제"
+              >✓</button>
+              <span class="sop-step-badge">STEP ${stepNumStr}</span>
+              <span class="sop-phase-badge">${phaseHtml}</span>
+            </div>
+            <div class="sop-order-actions">
+              <button
+                type="button"
+                class="btn-sop-move"
+                data-sop-move-up="${item.id}"
+                ${isFirst ? 'disabled' : ''}
+                title="순서 위로 이동"
+              >▲</button>
+              <button
+                type="button"
+                class="btn-sop-move"
+                data-sop-move-down="${item.id}"
+                ${isLast ? 'disabled' : ''}
+                title="순서 아래로 이동"
+              >▼</button>
+            </div>
+          </div>
+
+          <div class="sop-title" data-sop-edit="${item.id}">${titleHtml}</div>
+          <div class="sop-content" data-sop-edit="${item.id}">${contentHtml}</div>
+          ${cautionHtml}
+          ${photoHtml}
+
+          <div class="sop-card-footer">
+            <button
+              type="button"
+              class="btn-sop-insert-after"
+              data-sop-insert-after="${item.globalOrder}"
+              data-sop-phase-val="${item.phase || '도착 전 준비'}"
+            >＋ 다음 순서(${item.globalOrder + 1}번)에 절차 끼워넣기</button>
+            <button
+              type="button"
+              class="btn-sop-edit-text"
+              data-sop-edit="${item.id}"
+            >✏️ 수정 · 삭제</button>
+          </div>
+        </div>
+      `;
+    })
+    .join('');
+}
+
+function updateSopPhotoPreview(dataUrl) {
+  currentSopPhotoData = dataUrl || '';
+  if (currentSopPhotoData) {
+    sopPhotoPreview.src = currentSopPhotoData;
+    sopPhotoPreview.style.display = 'block';
+    sopPhotoPlaceholder.style.display = 'none';
+    removeSopPhotoBtn.style.display = 'inline-block';
+  } else {
+    sopPhotoPreview.src = '';
+    sopPhotoPreview.style.display = 'none';
+    sopPhotoPlaceholder.style.display = 'block';
+    removeSopPhotoBtn.style.display = 'none';
+  }
+}
+
+function openSopModalForCreate(insertOrderNum = null, defaultPhase = null) {
+  editingSopId = null;
+  const targetOrder = insertOrderNum || sopItems.length + 1;
+  sopModalTitle.textContent = `새 조업 절차 추가 (STEP ${String(targetOrder).padStart(2, '0')})`;
+  deleteSopBtn.style.display = 'none';
+
+  sopOrderInput.value = targetOrder;
+  sopOrderInput.max = sopItems.length + 1;
+
+  const phaseToSet =
+    defaultPhase || (currentSopPhase !== 'ALL' ? currentSopPhase : '도착 전 준비');
+  if (sopPhaseSelect) sopPhaseSelect.value = phaseToSet;
+
+  sopTitleInput.value = '';
+  sopContentInput.value = '';
+  sopCautionInput.value = '';
+  updateSopPhotoPreview('');
+
+  sopModal.classList.add('open');
+  setTimeout(() => {
+    sopTitleInput.focus();
+  }, 80);
+}
+
+function openSopModalForEdit(id) {
+  const idx = sopItems.findIndex((it) => it.id === id);
+  if (idx === -1) return;
+  const target = sopItems[idx];
+
+  editingSopId = id;
+  const currentOrder = idx + 1;
+  sopModalTitle.textContent = `STEP ${String(currentOrder).padStart(2, '0')} · 조업 절차 수정`;
+  deleteSopBtn.style.display = 'inline-block';
+
+  sopOrderInput.value = currentOrder;
+  sopOrderInput.max = sopItems.length;
+
+  if (sopPhaseSelect) {
+    sopPhaseSelect.value = target.phase || '도착 전 준비';
+  }
+  sopTitleInput.value = target.title || '';
+  sopContentInput.value = target.content || '';
+  sopCautionInput.value = target.caution || '';
+  updateSopPhotoPreview(target.photo || '');
+
+  sopModal.classList.add('open');
+}
+
+function closeSopModal() {
+  sopModal.classList.remove('open');
+  editingSopId = null;
+}
+
+function moveSopStep(id, direction) {
+  const idx = sopItems.findIndex((it) => it.id === id);
+  if (idx === -1) return;
+  const newIdx = idx + direction;
+  if (newIdx < 0 || newIdx >= sopItems.length) return;
+
+  const temp = sopItems[idx];
+  sopItems[idx] = sopItems[newIdx];
+  sopItems[newIdx] = temp;
+
+  saveSopData();
+  render();
+  showToast(`절차 순서가 STEP ${String(newIdx + 1).padStart(2, '0')}번으로 이동되었습니다.`);
+}
+
+if (sopPhaseTabs) {
+  sopPhaseTabs.addEventListener('click', (e) => {
+    const btn = e.target.closest('.tab-btn');
+    if (!btn) return;
+    currentSopPhase = btn.dataset.sopPhase;
+    render();
+  });
+}
+
+if (resetSopCheckBtn) {
+  resetSopCheckBtn.addEventListener('click', () => {
+    sopItems.forEach((it) => {
+      it.checked = false;
+    });
+    saveSopData();
+    render();
+    showToast('모든 조업 절차 완료 체크가 초기화되었습니다.');
+  });
+}
+
+if (closeSopModalBtn) {
+  closeSopModalBtn.addEventListener('click', closeSopModal);
+}
+
+if (sopModal) {
+  sopModal.addEventListener('click', (e) => {
+    if (e.target === sopModal) closeSopModal();
+  });
+}
+
+if (sopCameraInput) {
+  sopCameraInput.addEventListener('change', async (e) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const dataUrl = await compressImageFile(file);
+      updateSopPhotoPreview(dataUrl);
+    }
+    e.target.value = '';
+  });
+}
+
+if (sopGalleryInput) {
+  sopGalleryInput.addEventListener('change', async (e) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const dataUrl = await compressImageFile(file);
+      updateSopPhotoPreview(dataUrl);
+    }
+    e.target.value = '';
+  });
+}
+
+if (removeSopPhotoBtn) {
+  removeSopPhotoBtn.addEventListener('click', () => {
+    updateSopPhotoPreview('');
+  });
+}
+
+if (sopForm) {
+  sopForm.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const desiredOrder = Math.max(1, parseInt(sopOrderInput.value, 10) || 1);
+    const phase = sopPhaseSelect.value || '도착 전 준비';
+    const title = sopTitleInput.value.trim();
+    const content = sopContentInput.value.trim();
+    const caution = sopCautionInput.value.trim();
+
+    if (!title || !content) {
+      showToast('절차 제목과 상세 조업 내용을 입력해 주세요.');
+      return;
+    }
+
+    if (editingSopId) {
+      const oldIdx = sopItems.findIndex((it) => it.id === editingSopId);
+      if (oldIdx !== -1) {
+        const updatedItem = {
+          ...sopItems[oldIdx],
+          phase,
+          title,
+          content,
+          caution,
+          photo: currentSopPhotoData
+        };
+        sopItems.splice(oldIdx, 1);
+        const targetIdx = Math.min(sopItems.length, desiredOrder - 1);
+        sopItems.splice(targetIdx, 0, updatedItem);
+        saveSopData();
+        render();
+        closeSopModal();
+        showToast(`STEP ${String(targetIdx + 1).padStart(2, '0')} (${title}) 절차가 저장되었습니다.`);
+      }
+    } else {
+      const newItem = {
+        id: `sop-custom-${Date.now()}`,
+        phase,
+        title,
+        content,
+        caution,
+        photo: currentSopPhotoData,
+        checked: false
+      };
+      const targetIdx = Math.min(sopItems.length, desiredOrder - 1);
+      sopItems.splice(targetIdx, 0, newItem);
+      saveSopData();
+      render();
+      closeSopModal();
+      showToast(`STEP ${String(targetIdx + 1).padStart(2, '0')}번 순서에 새 절차가 추가되었습니다.`);
+    }
+  });
+}
+
+if (deleteSopBtn) {
+  deleteSopBtn.addEventListener('click', () => {
+    if (!editingSopId) return;
+    const idx = sopItems.findIndex((it) => it.id === editingSopId);
+    if (idx === -1) return;
+    const target = sopItems[idx];
+
+    if (confirm(`'STEP ${String(idx + 1).padStart(2, '0')} · ${target.title}' 절차를 삭제하시겠습니까?\n(삭제 후 나머지 절차 번호는 자동으로 재정렬됩니다)`)) {
+      sopItems.splice(idx, 1);
+      saveSopData();
+      render();
+      closeSopModal();
+      showToast('해당 조업 절차가 삭제되고 순서가 재정렬되었습니다.');
+    }
+  });
+}
+
+// SOP 카드 내 버튼 이벤트 위임 (체크, 위/아래 순서 이동, 사진 확대, 다음 순서 삽입, 수정)
+resultsList.addEventListener('click', (e) => {
+  if (appMode !== 'SOP') return;
+
+  const checkBtn = e.target.closest('[data-sop-check]');
+  if (checkBtn) {
+    e.stopPropagation();
+    const id = checkBtn.dataset.sopCheck;
+    const item = sopItems.find((it) => it.id === id);
+    if (item) {
+      item.checked = !item.checked;
+      saveSopData();
+      render();
+    }
+    return;
+  }
+
+  const upBtn = e.target.closest('[data-sop-move-up]');
+  if (upBtn) {
+    e.stopPropagation();
+    moveSopStep(upBtn.dataset.sopMoveUp, -1);
+    return;
+  }
+
+  const downBtn = e.target.closest('[data-sop-move-down]');
+  if (downBtn) {
+    e.stopPropagation();
+    moveSopStep(downBtn.dataset.sopMoveDown, 1);
+    return;
+  }
+
+  const zoomSop = e.target.closest('[data-sop-zoom-id]');
+  if (zoomSop) {
+    e.stopPropagation();
+    const target = sopItems.find((it) => it.id === zoomSop.dataset.sopZoomId);
+    if (target && target.photo) {
+      lightboxImg.src = target.photo;
+      lightboxCaption.innerHTML = `<div>${target.title}</div>`;
+      photoLightbox.classList.add('open');
+    }
+    return;
+  }
+
+  const insertBtn = e.target.closest('[data-sop-insert-after]');
+  if (insertBtn) {
+    e.stopPropagation();
+    const nextOrder = parseInt(insertBtn.dataset.sopInsertAfter, 10) + 1;
+    const phaseVal = insertBtn.dataset.sopPhaseVal;
+    openSopModalForCreate(nextOrder, phaseVal);
+    return;
+  }
+
+  const editTarget = e.target.closest('[data-sop-edit]') || e.target.closest('.sop-card');
+  if (editTarget) {
+    const id = editTarget.dataset.sopEdit || editTarget.dataset.sopId;
+    if (id) openSopModalForEdit(id);
+  }
+});
+
 // 서비스 워커 등록
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
@@ -3110,6 +3770,7 @@ if ('serviceWorker' in navigator) {
 
 // 앱 시작
 loadData();
+loadSopData();
 loadPinnedScheduleImage();
 render();
 

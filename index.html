@@ -45,16 +45,19 @@
         </div>
       </div>
 
-      <!-- 메인 모드 전환 탭 (3개 탭: 목적지 코드 / ULD 컨테이너 / 실시간 항공편) -->
-      <div class="mode-switch mode-switch-3" id="modeSwitch">
+      <!-- 메인 모드 전환 탭 (4개 탭: 목적지 코드 / ULD 장비 / 실시간 항공편 / 조업 절차서) -->
+      <div class="mode-switch mode-switch-4" id="modeSwitch">
         <button type="button" class="mode-btn active" data-mode="CODE">
-          ✈️ 목적지 코드
+          ✈️ 목적지코드
         </button>
         <button type="button" class="mode-btn" data-mode="ULD">
-          📦 ULD 장비
+          📦 ULD장비
         </button>
         <button type="button" class="mode-btn" data-mode="FLIGHT">
-          📡 실시간 항공편
+          📡 실시간항공
+        </button>
+        <button type="button" class="mode-btn" data-mode="SOP">
+          📋 조업절차서
         </button>
       </div>
 
@@ -130,6 +133,22 @@
             스팟배정 <span class="count" id="fcount-SPOT">0</span>
           </button>
         </nav>
+      </div>
+
+      <!-- [모드 4] UPS 항공조업 절차서 단계별 필터 탭 & 진행률 바 -->
+      <div class="sop-controls" id="sopControls" style="display: none;">
+        <div class="sop-progress-row">
+          <div class="sop-progress-info">
+            <span id="sopProgressText">조업 진행률: 0 / 0 완료</span>
+            <div class="sop-progress-bar-bg">
+              <div class="sop-progress-bar-fill" id="sopProgressBarFill" style="width: 0%;"></div>
+            </div>
+          </div>
+          <button type="button" class="btn-sop-check-reset" id="resetSopCheckBtn" title="완료 체크 일괄 해제">
+            ☑️ 체크 초기화
+          </button>
+        </div>
+        <nav class="uld-type-tabs sop-phase-tabs" id="sopPhaseTabs" aria-label="조업 단계별 필터"></nav>
       </div>
     </header>
 
@@ -704,6 +723,122 @@
           ➕ 기존에 추가
         </button>
       </div>
+    </div>
+  </div>
+
+  <!-- [모달 8] UPS 항공조업 절차서 추가 · 수정 · 순서 변경 · 삭제 (CRUD) 모달 -->
+  <div class="modal-backdrop" id="sopModal" role="dialog" aria-modal="true" aria-labelledby="sopModalTitle">
+    <div class="modal-sheet modal-sheet-scroll">
+      <div class="modal-header">
+        <h2 class="modal-title" id="sopModalTitle">📋 UPS 항공조업 절차 등록/수정</h2>
+        <button type="button" class="modal-close" id="closeSopModalBtn" aria-label="닫기">✕</button>
+      </div>
+
+      <form id="sopForm">
+        <!-- 1행: 절차 순서(STEP) & 조업 단계 구분(Phase) -->
+        <div class="form-row" style="grid-template-columns: 110px 1fr;">
+          <div class="form-group">
+            <label class="form-label" for="sopOrderInput">
+              절차 순서 <span class="label-highlight">(STEP)</span>
+            </label>
+            <input
+              type="number"
+              id="sopOrderInput"
+              class="form-input input-highlight"
+              min="1"
+              max="999"
+              placeholder="예: 1"
+              required
+            />
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="sopPhaseSelect">조업 단계 구분</label>
+            <select id="sopPhaseSelect" class="form-input">
+              <option value="도착 전 준비">1. 도착 전 준비</option>
+              <option value="항공기 도착·접안">2. 항공기 도착·접안</option>
+              <option value="하기 작업(Off-load)">3. 하기 작업(Off-load)</option>
+              <option value="탑재 작업(On-load)">4. 탑재 작업(On-load)</option>
+              <option value="출발·조업 마감">5. 출발·조업 마감</option>
+              <option value="안전·특수 절차">6. 안전·특수 절차</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- 2행: 절차 제목 -->
+        <div class="form-group">
+          <label class="form-label" for="sopTitleInput">
+            절차 제목 <span class="label-highlight">(필수)</span>
+          </label>
+          <input
+            type="text"
+            id="sopTitleInput"
+            class="form-input"
+            placeholder="예: 카고 로더(High Loader) 접안 및 도어 오픈"
+            required
+          />
+        </div>
+
+        <!-- 3행: 상세 절차 내용 (여러 줄) -->
+        <div class="form-group">
+          <label class="form-label" for="sopContentInput">
+            상세 조업 내용 및 세부 순서 <span class="label-sub">(줄바꿈으로 구분)</span>
+          </label>
+          <textarea
+            id="sopContentInput"
+            class="form-textarea"
+            rows="4"
+            placeholder="1) 세부 작업 내용 입력&#10;2) 확인 및 점검 사항 입력"
+            required
+          ></textarea>
+        </div>
+
+        <!-- 4행: 안전/핵심 주의사항 -->
+        <div class="form-group">
+          <label class="form-label" for="sopCautionInput">
+            ⚠️ 안전 / 핵심 주의사항 <span class="label-sub">(선택 입력 시 강조 표시)</span>
+          </label>
+          <input
+            type="text"
+            id="sopCautionInput"
+            class="form-input"
+            placeholder="예: 748 기종 1,2,3 POS AAZ(L9) 탑재 금지 / Tail Tip 주의"
+          />
+        </div>
+
+        <!-- 5행: 참고 사진 첨부 (선택) -->
+        <div class="form-group">
+          <label class="form-label">참고 사진 첨부 (선택 · 현장 장비/매뉴얼 사진)</label>
+          <div class="photo-upload-box" id="sopPhotoUploadBox" style="height: 110px;">
+            <img id="sopPhotoPreview" class="uld-photo-preview" alt="절차 참고 사진 미리보기" style="display: none;" />
+            <div id="sopPhotoPlaceholder" class="photo-placeholder">
+              <div class="photo-placeholder-icon">📷</div>
+              <div class="photo-placeholder-text">절차 참고 사진을 찍거나 앨범에서 선택하세요</div>
+            </div>
+          </div>
+          <div class="photo-btn-row">
+            <label class="btn-photo-action">
+              📷 카메라 촬영
+              <input type="file" id="sopCameraInput" accept="image/*" capture="environment" style="display: none;" />
+            </label>
+            <label class="btn-photo-action">
+              🖼️ 앨범에서 선택
+              <input type="file" id="sopGalleryInput" accept="image/*" style="display: none;" />
+            </label>
+            <button type="button" class="btn-photo-remove" id="removeSopPhotoBtn" style="display: none;">
+              사진 삭제
+            </button>
+          </div>
+        </div>
+
+        <p class="field-sync-notice">
+          💡 <strong>절차 순서(STEP)</strong> 번호를 변경하여 저장하면 전체 절차 번호가 자동으로 재정렬되며, 목록에서도 <strong>[▲] [▼] 버튼</strong>으로 순서를 즉시 바꿀 수 있습니다.
+        </p>
+
+        <div class="modal-actions">
+          <button type="button" class="btn-delete" id="deleteSopBtn" style="display: none;">삭제</button>
+          <button type="submit" class="btn-save">절차서에 저장하기</button>
+        </div>
+      </form>
     </div>
   </div>
 
