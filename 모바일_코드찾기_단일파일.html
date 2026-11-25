@@ -4105,9 +4105,9 @@ const INITIAL_ULD_DATA = [
 ];
 
 // 실시간 항공편 (📡 실시간 스케줄 vs 📷 이미지 반영 스케줄 완전 분리 저장 키 — 새로고침 시 절대 덮어씌워지지 않음)
-const FLIGHT_STORAGE_KEY = 'cpk_live_flight_board_v6';
-const FLIGHT_LAST_SYNC_KEY = 'cpk_live_flight_sync_v6';
-const FLIGHT_SYNCED_DATE_KEY = 'cpk_live_synced_date_v6';
+const FLIGHT_STORAGE_KEY = 'cpk_live_flight_board_v7';
+const FLIGHT_LAST_SYNC_KEY = 'cpk_live_flight_sync_v7';
+const FLIGHT_SYNCED_DATE_KEY = 'cpk_live_synced_date_v7';
 const IMAGE_FLIGHT_STORAGE_KEY = 'cpk_image_flight_board_v5';
 const IMAGE_LAST_SYNC_KEY = 'cpk_image_flight_sync_v5';
 const IMAGE_EQUIP_SUMMARY_KEY = 'cpk_image_equip_summary_v5';
@@ -4131,8 +4131,8 @@ const UPS_FLIGHT_PRESETS = {
   '173': { aircraft: '767', origin: 'CGO' },
   '99': { aircraft: '748', origin: 'HNL', dest: 'ANC' },
   '099': { aircraft: '748', origin: 'HNL', dest: 'ANC' },
-  '64': { aircraft: '748', origin: 'ANC', dest: 'HKG' },
-  '064': { aircraft: '748', origin: 'ANC', dest: 'HKG' },
+  '64': { aircraft: '744', origin: 'ANC', dest: 'HKG' },
+  '064': { aircraft: '744', origin: 'ANC', dest: 'HKG' },
   '26': { aircraft: '748', origin: 'ANC', dest: 'TPE' },
   '026': { aircraft: '748', origin: 'ANC', dest: 'TPE' },
   '58': { aircraft: '748', origin: 'ONT' },
@@ -5332,8 +5332,8 @@ function parseAirportKrCargoHtml(htmlString, dirType) {
 // - 실시간 항공스케줄(LIVE)은 이미지 등록 스케줄(IMAGE)과 독립적으로 인천공항 실제 운항 노선·편명 회전 기준의 항공기 기종을 표시합니다.
 // - UPS(5X) 편명 회전 기준:
 //   * 195 또는 196이 포함된 회전(196/195, 196/174, 173/195, 196, 195): B767-300F (767)
-//   * 11 또는 6011이 포함된 회전(11/11, 6011/6011, 11A): B747-400F (744)
-//   * 33, 35, 37, 64, 26, 58, 99 및 33/174, 35/99, 37/174, 173/99, /174 회전: B747-8F (748)
+//   * 11, 6011, 64가 포함된 회전(11/11, 6011/6011, 11A, 64/64, 64): B747-400F (744)
+//   * 33, 35, 37, 26, 58, 99 및 33/174, 35/99, 37/174, 173/99, /174 회전: B747-8F (748)
 function resolveUpsPairAircraft(arrShort, depShort) {
   const a = (arrShort || '').trim();
   const d = (depShort || '').trim();
@@ -5341,15 +5341,18 @@ function resolveUpsPairAircraft(arrShort, depShort) {
   // 1) 196 / 195 편이 연결된 클락(CRK)·정저우(CGO) 회전은 B767-300F (767)
   if (a === '196' || a === '195' || d === '195' || d === '196') return '767';
 
-  // 2) 11 / 6011 편(푸동·델리·쾰른 노선)은 B747-400F (744)
-  if (a === '11' || a === '011' || a === '6011' || d === '11' || d === '011' || d === '6011' || d === '11A') {
+  // 2) 11 / 6011 편(푸동·델리·쾰른) 및 64 편(앵커리지·홍콩 64/64)은 B747-400F (744)
+  if (
+    ['11', '011', '6011', '11A', '64', '064'].includes(a) ||
+    ['11', '011', '6011', '11A', '64', '064'].includes(d)
+  ) {
     return '744';
   }
 
-  // 3) 33, 35, 37, 64, 26, 58, 99 및 173/99, 33/174, /174 회전은 B747-8F (748)
+  // 3) 33, 35, 37, 26, 58, 99 및 173/99, 33/174, /174 회전은 B747-8F (748)
   if (
-    ['35', '035', '37', '037', '33', '033', '99', '099', '64', '064', '26', '026', '58', '058'].includes(a) ||
-    ['99', '099', '64', '064', '26', '026'].includes(d)
+    ['35', '035', '37', '037', '33', '033', '99', '099', '26', '026', '58', '058'].includes(a) ||
+    ['99', '099', '26', '026'].includes(d)
   ) {
     return '748';
   }
