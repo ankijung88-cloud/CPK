@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ko">
 <head>
   <meta charset="UTF-8" />
@@ -609,6 +609,120 @@ body {
   display: flex;
   flex-direction: column;
   gap: 8px;
+}
+
+/* 실시간 스케줄 vs 이미지 반영 스케줄 선택 전환 바 */
+.flight-source-bar {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  background: rgba(15, 23, 42, 0.55);
+  padding: 4px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+}
+
+.flight-source-btn {
+  background: transparent;
+  border: 1.5px solid transparent;
+  color: #cbd5e1;
+  font-size: 0.81rem;
+  font-weight: 800;
+  padding: 8px 8px;
+  border-radius: 9px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  white-space: nowrap;
+  transition: all 0.15s;
+}
+
+.flight-source-btn .src-count {
+  background: rgba(255, 255, 255, 0.16);
+  color: #e2e8f0;
+  font-size: 0.72rem;
+  font-weight: 900;
+  padding: 1px 6px;
+  border-radius: 99px;
+}
+
+.flight-source-btn.active[data-flight-source="LIVE"] {
+  background: #22c55e;
+  color: #052e16;
+  border-color: #4ade80;
+  box-shadow: 0 2px 8px rgba(34, 197, 94, 0.35);
+}
+
+.flight-source-btn.active[data-flight-source="LIVE"] .src-count {
+  background: rgba(5, 46, 22, 0.2);
+  color: #052e16;
+}
+
+.flight-source-btn.active[data-flight-source="IMAGE"] {
+  background: #38bdf8;
+  color: #0f172a;
+  border-color: #7dd3fc;
+  box-shadow: 0 2px 8px rgba(56, 189, 248, 0.38);
+}
+
+.flight-source-btn.active[data-flight-source="IMAGE"] .src-count {
+  background: rgba(15, 23, 42, 0.18);
+  color: #0f172a;
+}
+
+/* 화이트보드 하단 DOLLY · MT · *SHP 장비 현황 바 */
+.wb-equip-summary-bar {
+  margin: 10px 12px 4px;
+  background: #ffffff;
+  border: 1.5px solid #2e7d5b;
+  border-left: 5px solid #2e7d5b;
+  border-radius: 12px;
+  padding: 10px 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  box-shadow: var(--shadow-sm);
+  cursor: pointer;
+}
+
+.wb-equip-left {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.wb-equip-badge {
+  background: #ecfdf5;
+  border: 1px solid #a7f3d0;
+  color: #065f46;
+  font-size: 0.75rem;
+  font-weight: 800;
+  padding: 3px 8px;
+  border-radius: 7px;
+}
+
+.wb-equip-text {
+  font-family: "SF Mono", "Roboto Mono", Consolas, monospace;
+  font-size: 0.92rem;
+  font-weight: 900;
+  color: #0f172a;
+  letter-spacing: 0.02em;
+}
+
+.btn-equip-edit {
+  background: #f1f5f9;
+  border: 1px solid #cbd5e1;
+  color: #334155;
+  border-radius: 7px;
+  padding: 5px 9px;
+  font-size: 0.74rem;
+  font-weight: 800;
+  cursor: pointer;
+  flex-shrink: 0;
 }
 
 .flight-top-row {
@@ -2508,8 +2622,18 @@ mark.hl {
       <!-- [모드 2] ULD 현장명칭 / 박스 타입별 필터 탭 (동적 렌더링) -->
       <nav class="uld-type-tabs" id="uldTypeTabs" style="display: none;" aria-label="박스 타입별 필터"></nav>
 
-      <!-- [모드 3] 실시간 항공편 컨트롤 & 출·도착 필터 탭 -->
+      <!-- [모드 3] 실시간 항공편 컨트롤 & 스케줄 모드(실시간 vs 이미지 반영) 선택 & 출·도착 필터 탭 -->
       <div class="flight-controls" id="flightControls" style="display: none;">
+        <!-- 1. 실시간 스케줄 vs 이미지 반영 스케줄 선택 전환 바 -->
+        <div class="flight-source-bar" id="flightSourceBar">
+          <button type="button" class="flight-source-btn active" data-flight-source="LIVE">
+            📡 실시간 스케줄 <span class="src-count" id="srcCount-LIVE">0</span>
+          </button>
+          <button type="button" class="flight-source-btn" data-flight-source="IMAGE">
+            📷 이미지 반영 스케줄 <span class="src-count" id="srcCount-IMAGE">0</span>
+          </button>
+        </div>
+
         <div class="flight-top-row">
           <div class="flight-airline-toggle" id="flightAirlineToggle">
             <button type="button" class="ups-toggle-btn active" data-airline-filter="UPS">
@@ -2615,6 +2739,15 @@ mark.hl {
 
     <!-- 검색 결과 리스트 (목적지 코드 & ULD 컨테이너 & 실시간 항공편 공용 영역) -->
     <main class="results-list" id="resultsList"></main>
+
+    <!-- [모드 3 전용] 화이트보드 하단 DOLLY · MT · *SHP 장비 현황 바 -->
+    <div class="wb-equip-summary-bar" id="wbEquipSummaryBar" style="display: none;" title="클릭하여 DOLLY · MT · *SHP 수량 메모 수정">
+      <div class="wb-equip-left">
+        <span class="wb-equip-badge">🛠️ 현장 장비 현황</span>
+        <span class="wb-equip-text" id="wbEquipSummaryText">DOLLY : 70 · MT : 42 · *SHP - 10</span>
+      </div>
+      <button type="button" class="btn-equip-edit" id="editEquipSummaryBtn">✏️ 수량수정</button>
+    </div>
 
     <!-- 플로팅 액션 버튼 영역 -->
     <div class="fab-group">
@@ -3118,10 +3251,10 @@ mark.hl {
 
       <!-- 2. 추출된 6열 스케줄 검수 및 직접 수정 테이블 -->
       <div class="sched-extract-header">
-        <span class="form-label" style="margin:0;">📋 반영할 현황판 데이터 (사진을 보며 수정·추가 가능)</span>
+        <span class="form-label" style="margin:0;">📋 자동 인식된 현황판 데이터 (사진 선택 시 즉시 자동 반영됨)</span>
         <div class="sched-extract-tools">
           <button type="button" class="btn-mini-tool" id="addSchedRowBtn">＋ 행 추가</button>
-          <button type="button" class="btn-mini-tool" id="loadDefaultBoardRowsBtn">⚡ 기본편 불러오기</button>
+          <button type="button" class="btn-mini-tool" id="loadDefaultBoardRowsBtn">⚡ 최신 화이트보드(5편)</button>
         </div>
       </div>
 
@@ -3138,12 +3271,24 @@ mark.hl {
         <div id="schedExtractRows" class="sched-edit-tbody"></div>
       </div>
 
+      <div class="form-group" style="margin-top: 8px; margin-bottom: 4px;">
+        <label class="form-label" for="schedEquipInput" style="margin-bottom: 3px;">🛠️ 화이트보드 하단 장비 메모 (DOLLY · MT · *SHP)</label>
+        <input
+          type="text"
+          id="schedEquipInput"
+          class="form-input"
+          style="height: 36px; font-size: 0.84rem;"
+          placeholder="예: DOLLY : 70 · MT : 42 · *SHP - 10"
+          value="DOLLY : 70 · MT : 42 · *SHP - 10"
+        />
+      </div>
+
       <!-- 반영 버튼 (기존 교체 vs 기존에 추가) -->
-      <div class="modal-actions" style="margin-top: 14px;">
+      <div class="modal-actions" style="margin-top: 12px;">
         <button type="button" class="btn-save" id="applySchedReplaceBtn" style="background:#16a34a;">
-          ✅ 현황판에 덮어쓰기(반영)
+          ✅ 이미지 스케줄 확정 반영
         </button>
-        <button type="button" class="btn-save" id="applySchedAppendBtn" style="background:#2563eb; flex:0.75;">
+        <button type="button" class="btn-save" id="applySchedAppendBtn" style="background:#2563eb; flex:0.65;">
           ➕ 기존에 추가
         </button>
       </div>
@@ -3445,25 +3590,30 @@ const INITIAL_ULD_DATA = [
   }
 ];
 
-// 실시간 항공편 (현장 화이트보드 조업 현황판 형식) 저장 키
-const FLIGHT_STORAGE_KEY = 'cpk_flight_board_v4';
-const FLIGHT_LAST_SYNC_KEY = 'cpk_flight_last_sync_v4';
+// 실시간 항공편 (📡 실시간 스케줄 vs 📷 이미지 반영 스케줄 완전 분리 저장 키 — 새로고침 시 절대 덮어씌워지지 않음)
+const FLIGHT_STORAGE_KEY = 'cpk_live_flight_board_v5';
+const FLIGHT_LAST_SYNC_KEY = 'cpk_live_flight_sync_v5';
+const FLIGHT_SYNCED_DATE_KEY = 'cpk_live_synced_date_v5';
+const IMAGE_FLIGHT_STORAGE_KEY = 'cpk_image_flight_board_v5';
+const IMAGE_LAST_SYNC_KEY = 'cpk_image_flight_sync_v5';
+const IMAGE_EQUIP_SUMMARY_KEY = 'cpk_image_equip_summary_v5';
+const ACTIVE_FLIGHT_SOURCE_KEY = 'cpk_active_flight_source_v5';
 
 // UPS 편명별 기본 투입 기종 및 실제 UPS 조업 노선(직전 출발지 / 직후 목적지) 매핑 사전
 const UPS_FLIGHT_PRESETS = {
-  '195': { aircraft: '767', dest: 'CRK' },
-  '196': { aircraft: '767', origin: 'CRK' },
+  '195': { aircraft: '744', dest: 'CRK' },
+  '196': { aircraft: '744', origin: 'CRK' },
   '6011': { aircraft: '744', origin: 'PVG', dest: 'CGN' },
-  '011': { aircraft: '744', origin: 'PVG', dest: 'DEL' },
-  '11': { aircraft: '744', origin: 'PVG', dest: 'DEL' },
+  '011': { aircraft: '748', origin: 'PVG', dest: 'DEL' },
+  '11': { aircraft: '748', origin: 'PVG', dest: 'DEL' },
   '35': { aircraft: '748', origin: 'HNL' },
   '035': { aircraft: '748', origin: 'HNL' },
   '37': { aircraft: '748', origin: 'SYD' },
   '037': { aircraft: '748', origin: 'SYD' },
   '33': { aircraft: '748', origin: 'HNL' },
   '033': { aircraft: '748', origin: 'HNL' },
-  '174': { aircraft: '767', dest: 'CGO' },
-  '173': { aircraft: '767', origin: 'CGO' },
+  '174': { aircraft: '748', origin: 'ANC', dest: 'CGO' },
+  '173': { aircraft: '748', origin: 'CGO' },
   '99': { aircraft: '748', origin: 'HNL', dest: 'ANC' },
   '099': { aircraft: '748', origin: 'HNL', dest: 'ANC' },
   '64': { aircraft: '748', origin: 'ANC', dest: 'HKG' },
@@ -3474,64 +3624,82 @@ const UPS_FLIGHT_PRESETS = {
   '058': { aircraft: '748', origin: 'ONT' }
 };
 
-// CPK 일일 화물 조업 현황 화이트보드(SPOT | FLT/NO | 기종 | STA/ATA | STD/ATD | ORIGIN/DEST) 기준 초기 데이터
-const INITIAL_FLIGHT_DATA = [
+// CPK 일일 화물 조업 현황 화이트보드(SPOT | FLT/NO | 기종 | STA/ATA | STD/ATD | ORIGIN/DEST) 기준 초기 데이터 (11/25 최신 화이트보드 반영)
+const INITIAL_IMAGE_FLIGHT_DATA = [
   {
-    id: 'wb-636-35-99',
-    spot: '636',
-    fltNo: '35/99',
+    id: 'img-wb-630-174',
+    spot: '630',
+    fltNo: '/174',
     aircraft: '748',
-    sta: '03:25',
-    ataSub: 'ATA 02:57',
-    std: '22:35',
-    atdSub: '정시예정',
-    originDest: 'HNL/ANC',
+    sta: '',
+    ataSub: '',
+    std: '12:05',
+    atdSub: 'ATD 11:46',
+    originDest: 'ANC/CGO',
     airline: '유피에스항공',
-    state: '도착·대기중',
-    memo: '5X035 호놀룰루(HNL)發 ➔ 5X099 앵커리지(ANC)行'
+    state: '화이트보드 반영',
+    memo: '전일 ANC發 체류기 ➔ 5X174 정저우(CGO)行 출발'
   },
   {
-    id: 'wb-629-11-11',
+    id: 'img-wb-629-11-11',
     spot: '629',
     fltNo: '11/11',
-    aircraft: '744',
-    sta: '08:00',
-    ataSub: 'ATA 07:52',
-    std: '10:00',
-    atdSub: 'ATD 09:56',
+    aircraft: '748',
+    sta: '16:55',
+    ataSub: 'ATA 17:07',
+    std: '18:30',
+    atdSub: '지연변경',
     originDest: 'PVG/DEL',
     airline: '유피에스항공',
-    state: '출발완료',
-    memo: '5X011 푸동(PVG)發 ➔ 델리(DEL)行'
+    state: '화이트보드 반영',
+    memo: '5X011 푸동(PVG)發 ➔ 델리(DEL)行 (1655/1830 변경 반영)'
   },
   {
-    id: 'wb-631-196-174',
+    id: 'img-wb-631-196-195',
     spot: '631',
-    fltNo: '196/174',
-    aircraft: '767',
+    fltNo: '196/195',
+    aircraft: '744',
     sta: '08:05',
-    ataSub: 'ATA 08:19',
-    std: '12:05',
-    atdSub: '정시예정',
-    originDest: 'CRK/CGO',
-    airline: '유피에스항공',
-    state: '도착·조업중',
-    memo: '5X196 클락(CRK)發 ➔ 5X174 정저우(CGO)行'
-  },
-  {
-    id: 'wb-631-173-195',
-    spot: '631',
-    fltNo: '173/195',
-    aircraft: '767',
-    sta: '19:55',
-    ataSub: '정시예정',
+    ataSub: 'ATA 08:01',
     std: '22:00',
     atdSub: '정시예정',
-    originDest: 'CGO/CRK',
+    originDest: 'CRK/CRK',
     airline: '유피에스항공',
-    state: '예정',
-    memo: '5X173 정저우(CGO)發 ➔ 5X195 클락(CRK)行'
+    state: '화이트보드 반영',
+    memo: '5X196 클락(CRK)發 ➔ 5X195 클락(CRK)行 (744 투입)'
   },
+  {
+    id: 'img-wb-629-64-64',
+    spot: '629',
+    fltNo: '64/64',
+    aircraft: '748',
+    sta: '11:45',
+    ataSub: 'ATA 11:25',
+    std: '13:30',
+    atdSub: '정시예정',
+    originDest: 'ANC/HKG',
+    airline: '유피에스항공',
+    state: '화이트보드 반영',
+    memo: '5X064 앵커리지(ANC)發 ➔ 홍콩(HKG)行'
+  },
+  {
+    id: 'img-wb-630-173-99',
+    spot: '630',
+    fltNo: '173/99',
+    aircraft: '748',
+    sta: '19:55',
+    ataSub: '정시예정',
+    std: '22:35',
+    atdSub: '정시예정',
+    originDest: 'CGO/ANC',
+    airline: '유피에스항공',
+    state: '화이트보드 반영',
+    memo: '5X173 정저우(CGO)發 ➔ 5X099 앵커리지(ANC)行'
+  }
+];
+
+const INITIAL_FLIGHT_DATA = [
+  ...JSON.parse(JSON.stringify(INITIAL_IMAGE_FLIGHT_DATA)),
   // 타 항공사 화물기 샘플 (전체 화물기 전환 시 함께 표시)
   {
     id: 'wb-648-5y8531',
@@ -3604,24 +3772,41 @@ function extractBoxType(fullName) {
   return match ? match[1] : '';
 }
 
-// UPS 항공편 여부 판별 (5X, UPS, 또는 화이트보드 숫자형 편명 195, 37/174, 6011/6011 등)
+// UPS 항공편 여부 판별 (5X, UPS, 또는 화이트보드 숫자형 편명 195, /174, 37/174, 196/195, 6011/6011 등)
 function isUpsFlight(flt) {
   if (!flt) return false;
   const no = (flt.fltNo || flt.flightNo || '').trim().toUpperCase();
   const air = (flt.airline || '').trim().toUpperCase();
   if (air.includes('유피에스') || air.includes('UPS')) return true;
   if (no.startsWith('5X') || no.startsWith('UPS')) return true;
-  if (/^\d+(\/\d+)?$/.test(no)) return true;
+  if (/^\d*(\/\d+)?$/.test(no) && /\d/.test(no)) return true;
   return false;
 }
 
 // 상태 관리
-let appMode = 'CODE'; // 'CODE' | 'ULD' | 'FLIGHT'
+let appMode = 'CODE'; // 'CODE' | 'ULD' | 'FLIGHT' | 'SOP'
 let items = [];
 let uldItems = [];
 let uldTypeDict = {};
-let flightItems = [];
-let flightLastSync = '';
+let liveFlightItems = [];
+let liveFlightLastSync = '';
+let imageFlightItems = [];
+let imageFlightLastSync = '';
+let imageEquipSummary = 'DOLLY : 70 · MT : 42 · *SHP - 10';
+let currentFlightSource = 'LIVE'; // 'LIVE' (실시간 스케줄) | 'IMAGE' (이미지 반영 스케줄)
+
+// 현재 선택된 스케줄 소스(LIVE 또는 IMAGE)의 활성 배열 조회/갱신 헬퍼
+function getActiveFlightList() {
+  return currentFlightSource === 'IMAGE' ? imageFlightItems : liveFlightItems;
+}
+
+function setActiveFlightList(newList) {
+  if (currentFlightSource === 'IMAGE') {
+    imageFlightItems = newList;
+  } else {
+    liveFlightItems = newList;
+  }
+}
 
 let currentRegion = 'ALL';
 let currentUldFilter = 'ALL';
@@ -3643,6 +3828,7 @@ const clearSearchBtn = document.getElementById('clearSearchBtn');
 const regionTabs = document.getElementById('regionTabs');
 const uldTypeTabs = document.getElementById('uldTypeTabs');
 const flightControls = document.getElementById('flightControls');
+const flightSourceBar = document.getElementById('flightSourceBar');
 const flightAirlineToggle = document.getElementById('flightAirlineToggle');
 const flightDateInput = document.getElementById('flightDateInput');
 const liveSyncBtn = document.getElementById('liveSyncBtn');
@@ -3650,6 +3836,9 @@ const flightDirTabs = document.getElementById('flightDirTabs');
 const codeListHeader = document.getElementById('codeListHeader');
 const flightBoardHeader = document.getElementById('flightBoardHeader');
 const resultsList = document.getElementById('resultsList');
+const wbEquipSummaryBar = document.getElementById('wbEquipSummaryBar');
+const wbEquipSummaryText = document.getElementById('wbEquipSummaryText');
+const editEquipSummaryBtn = document.getElementById('editEquipSummaryBtn');
 const statusText = document.getElementById('statusText');
 const statusHint = document.getElementById('statusHint');
 const fabAddBtn = document.getElementById('fabAddBtn');
@@ -3783,22 +3972,45 @@ function loadData() {
   }
 
   try {
-    const rawFlight = localStorage.getItem(FLIGHT_STORAGE_KEY);
-    if (rawFlight) {
-      const parsedFlight = JSON.parse(rawFlight);
-      if (Array.isArray(parsedFlight) && parsedFlight.length > 0) {
-        flightItems = parsedFlight;
+    const rawLive = localStorage.getItem(FLIGHT_STORAGE_KEY);
+    if (rawLive) {
+      const parsedLive = JSON.parse(rawLive);
+      if (Array.isArray(parsedLive) && parsedLive.length > 0) {
+        liveFlightItems = parsedLive;
       }
     }
-    flightLastSync = localStorage.getItem(FLIGHT_LAST_SYNC_KEY) || '현장 현황판 기준';
+    liveFlightLastSync = localStorage.getItem(FLIGHT_LAST_SYNC_KEY) || '현장 현황판 기준';
+    lastSyncedDateKey = localStorage.getItem(FLIGHT_SYNCED_DATE_KEY) || '';
   } catch (e) {
-    console.error('Failed to read Flight localStorage:', e);
+    console.error('Failed to read Live Flight localStorage:', e);
   }
-  if (!flightItems || flightItems.length === 0) {
-    flightItems = JSON.parse(JSON.stringify(INITIAL_FLIGHT_DATA));
-    flightLastSync = '현장 현황판 기본 탑재';
-    saveFlightData();
+  if (!liveFlightItems || liveFlightItems.length === 0) {
+    liveFlightItems = JSON.parse(JSON.stringify(INITIAL_FLIGHT_DATA));
+    liveFlightLastSync = '인천공항 실시간 + 화이트보드 동기화';
   }
+
+  try {
+    const rawImg = localStorage.getItem(IMAGE_FLIGHT_STORAGE_KEY);
+    if (rawImg) {
+      const parsedImg = JSON.parse(rawImg);
+      if (Array.isArray(parsedImg) && parsedImg.length > 0) {
+        imageFlightItems = parsedImg;
+      }
+    }
+    imageFlightLastSync = localStorage.getItem(IMAGE_LAST_SYNC_KEY) || '📷 화이트보드 이미지 반영됨';
+    imageEquipSummary = localStorage.getItem(IMAGE_EQUIP_SUMMARY_KEY) || 'DOLLY : 70 · MT : 42 · *SHP - 10';
+    const savedSource = localStorage.getItem(ACTIVE_FLIGHT_SOURCE_KEY);
+    if (savedSource === 'LIVE' || savedSource === 'IMAGE') {
+      currentFlightSource = savedSource;
+    }
+  } catch (e) {
+    console.error('Failed to read Image Flight localStorage:', e);
+  }
+  if (!imageFlightItems || imageFlightItems.length === 0) {
+    imageFlightItems = JSON.parse(JSON.stringify(INITIAL_IMAGE_FLIGHT_DATA));
+    imageFlightLastSync = '📷 화이트보드 이미지 반영 (11.25)';
+  }
+  saveFlightData();
 
   if (flightDateInput && !flightDateInput.value) {
     flightDateInput.value = getTodayInputDate();
@@ -3824,8 +4036,15 @@ function saveUldData() {
 
 function saveFlightData() {
   try {
-    localStorage.setItem(FLIGHT_STORAGE_KEY, JSON.stringify(flightItems));
-    localStorage.setItem(FLIGHT_LAST_SYNC_KEY, flightLastSync);
+    localStorage.setItem(FLIGHT_STORAGE_KEY, JSON.stringify(liveFlightItems));
+    localStorage.setItem(FLIGHT_LAST_SYNC_KEY, liveFlightLastSync);
+    if (lastSyncedDateKey) {
+      localStorage.setItem(FLIGHT_SYNCED_DATE_KEY, lastSyncedDateKey);
+    }
+    localStorage.setItem(IMAGE_FLIGHT_STORAGE_KEY, JSON.stringify(imageFlightItems));
+    localStorage.setItem(IMAGE_LAST_SYNC_KEY, imageFlightLastSync);
+    localStorage.setItem(IMAGE_EQUIP_SUMMARY_KEY, imageEquipSummary);
+    localStorage.setItem(ACTIVE_FLIGHT_SOURCE_KEY, currentFlightSource);
   } catch (e) {
     console.error('Failed to save Flight localStorage:', e);
   }
@@ -4131,11 +4350,12 @@ function renderUldTypeTabs() {
   uldTypeTabs.innerHTML = html;
 }
 
-// 항공편 화이트보드 탭 카운트 업데이트
+// 항공편 화이트보드 탭 카운트 및 스케줄 모드(실시간 vs 이미지) 버튼 업데이트
 function updateFlightTabCounts() {
   const counts = { ALL: 0, ARR: 0, DEP: 0, SPOT: 0 };
+  const activeList = getActiveFlightList();
 
-  flightItems.forEach((flt) => {
+  activeList.forEach((flt) => {
     const airlineOk =
       currentFlightAirlineFilter === 'ALL' || isUpsFlight(flt);
     if (airlineOk && matchesFlightItem(flt, searchQuery)) {
@@ -4150,6 +4370,20 @@ function updateFlightTabCounts() {
   document.getElementById('fcount-ARR').textContent = counts.ARR;
   document.getElementById('fcount-DEP').textContent = counts.DEP;
   document.getElementById('fcount-SPOT').textContent = counts.SPOT;
+
+  // 실시간 스케줄 vs 이미지 반영 스케줄 버튼 카운트 및 활성 상태 동기화
+  const liveCount = liveFlightItems.filter((f) => currentFlightAirlineFilter === 'ALL' || isUpsFlight(f)).length;
+  const imgCount = imageFlightItems.filter((f) => currentFlightAirlineFilter === 'ALL' || isUpsFlight(f)).length;
+  const srcLiveEl = document.getElementById('srcCount-LIVE');
+  const srcImgEl = document.getElementById('srcCount-IMAGE');
+  if (srcLiveEl) srcLiveEl.textContent = liveCount;
+  if (srcImgEl) srcImgEl.textContent = imgCount;
+
+  if (flightSourceBar) {
+    flightSourceBar.querySelectorAll('.flight-source-btn').forEach((btn) => {
+      btn.classList.toggle('active', btn.dataset.flightSource === currentFlightSource);
+    });
+  }
 }
 
 // 메인 화면 렌더링
@@ -4326,8 +4560,10 @@ function renderUldMode() {
 // [모드 3] 현장 화이트보드 조업 현황판 (SPOT | FLT/NO | 기종 | STA/ATA | STD/ATD | ORIGIN/DEST) 렌더링
 function renderFlightMode() {
   updateFlightTabCounts();
+  updatePinnedScheduleBannerVisibility();
 
-  const filtered = flightItems.filter((flt) => {
+  const activeList = getActiveFlightList();
+  const filtered = activeList.filter((flt) => {
     const airlineOk =
       currentFlightAirlineFilter === 'ALL' || isUpsFlight(flt);
     if (!airlineOk) return false;
@@ -4339,9 +4575,15 @@ function renderFlightMode() {
     return matchesFlightItem(flt, searchQuery);
   });
 
-  const modeLabel = currentFlightAirlineFilter === 'UPS' ? 'UPS 조업 현황판' : '인천공항 화물 현황판';
-  statusText.textContent = `${modeLabel} · ${filtered.length}건`;
-  statusHint.textContent = `${flightLastSync} · 행 터치 시 수정`;
+  const sourcePrefix = currentFlightSource === 'IMAGE' ? '📷 이미지 반영 스케줄' : '📡 실시간 연동 스케줄';
+  const syncLabel = currentFlightSource === 'IMAGE' ? imageFlightLastSync : liveFlightLastSync;
+  statusText.textContent = `${sourcePrefix} · ${filtered.length}건`;
+  statusHint.textContent = `${syncLabel} · 행 터치 시 수정`;
+
+  if (wbEquipSummaryBar && wbEquipSummaryText) {
+    wbEquipSummaryText.textContent = imageEquipSummary || 'DOLLY : 70 · MT : 42 · *SHP - 10';
+    wbEquipSummaryBar.style.display = 'flex';
+  }
 
   if (filtered.length === 0) {
     const safeQuery = searchQuery.trim();
@@ -4349,16 +4591,19 @@ function renderFlightMode() {
       <div class="empty-state">
         <div class="empty-title">표시할 현황판 데이터가 없습니다</div>
         <div class="empty-desc">
-          [🔄 실시간 갱신]으로 인천공항 운항정보를 불러오거나 직접 현황판 행을 추가할 수 있습니다.
+          [🔄 실시간 갱신]으로 인천공항 운항정보를 불러오거나 [📷 이미지 등록]으로 화이트보드 사진을 반영할 수 있습니다.
         </div>
         <div style="display:flex; gap:8px; justify-content:center; flex-wrap:wrap;">
           <button type="button" class="btn-inline-add" id="inlineSyncFlightBtn" style="background:#16a34a;">🔄 인천공항 실시간 불러오기</button>
+          <button type="button" class="btn-inline-add" id="inlineOpenImgBtn" style="background:#0284c7;">📷 스케줄 이미지 등록</button>
           <button type="button" class="btn-inline-add" id="inlineAddFlightBtn">＋ 현황판 행 직접 추가</button>
         </div>
       </div>
     `;
     const syncBtn = document.getElementById('inlineSyncFlightBtn');
     if (syncBtn) syncBtn.addEventListener('click', () => syncLiveIcnFlights());
+    const imgBtn = document.getElementById('inlineOpenImgBtn');
+    if (imgBtn) imgBtn.addEventListener('click', () => openScheduleImageModal());
     const addBtn = document.getElementById('inlineAddFlightBtn');
     if (addBtn) addBtn.addEventListener('click', () => openFlightModalForCreate(safeQuery));
     return;
@@ -4379,11 +4624,11 @@ function renderFlightMode() {
         ? `<button type="button" class="wb-ac-btn" data-ac-guide="${rawAc}" title="클릭하여 ${rawAc} 기종 의미 및 탑재 안내 보기">${highlightText(rawAc, searchQuery)}</button>`
         : '-';
 
-      const staHtml = flt.sta ? highlightText(flt.sta, searchQuery) : '-';
+      const staHtml = flt.sta ? highlightText(flt.sta, searchQuery) : '';
       const ataSubClass = (flt.ataSub || '').includes('지연') ? 'delay' : (flt.ataSub || '').includes('ATA') ? 'done' : '';
       const ataSubHtml = flt.ataSub ? `<span class="wb-time-sub ${ataSubClass}">${flt.ataSub}</span>` : '';
 
-      const stdHtml = flt.std ? highlightText(flt.std, searchQuery) : '-';
+      const stdHtml = flt.std ? highlightText(flt.std, searchQuery) : '';
       const atdSubClass = (flt.atdSub || '').includes('지연') ? 'delay' : (flt.atdSub || '').includes('ATD') ? 'done' : '';
       const atdSubHtml = flt.atdSub ? `<span class="wb-time-sub ${atdSubClass}">${flt.atdSub}</span>` : '';
 
@@ -4398,10 +4643,11 @@ function renderFlightMode() {
       const stateText = (flt.state || '').trim();
       let stateTagClass = 'sched';
       if (stateText.includes('지연') || stateText.includes('결항')) stateTagClass = 'delay';
-      else if (stateText.includes('도착') || stateText.includes('출발')) stateTagClass = 'done';
+      else if (stateText.includes('도착') || stateText.includes('출발') || stateText.includes('반영')) stateTagClass = 'done';
 
-      // Flightradar24 링크용 첫 편명 추출 (예: 37/174 -> 5x37, 195 -> 5x195)
-      const firstPart = ((flt.fltNo || '').split('/')[0] || '').trim();
+      // Flightradar24 링크용 편명 추출 (예: /174 -> 5x174, 37/174 -> 5x37, 195 -> 5x195)
+      const fltParts = (flt.fltNo || '').split('/').map((s) => s.trim()).filter(Boolean);
+      const firstPart = fltParts[0] || '';
       const fr24Flt = /^\d+$/.test(firstPart)
         ? `5x${parseInt(firstPart, 10)}`
         : firstPart.replace(/^([A-Z0-9]{2})0+(\d+)$/i, '$1$2').toLowerCase();
@@ -4526,14 +4772,35 @@ function parseAirportKrCargoHtml(htmlString, dirType) {
 }
 
 // UPS 도착편과 출발편 페어링 기준 실제 투입 기종(767, 744, 748) 판별
-// - 195 또는 196과 연결된 조업(예: 196/174, 173/195, 195)은 B767(767)
-// - 11 또는 6011과 연결된 조업(예: 11/11, 6011/6011)은 B747-400(744)
-// - 35, 37, 33, 99, 64, 26, 58과 연결된 조업(예: 35/99, 37/174, 173/99, 64/64)은 B747-8F(748)
-function resolveUpsPairAircraft(arrShort, depShort) {
+// - 당일 이미지 반영 스케줄(imageFlightItems)에 동일 SPOT·편명의 기종이 등록되어 있으면 현장 화이트보드 기종을 최우선 적용
+// - 196/195 단독 CRK 회전(예: 11/25 631 스팟 196/195)은 B747-400(744), 196/174 또는 173/195 회전은 B767(767)
+// - 11/11은 당일 화이트보드 기준 B747-8F(748) 또는 B747-400(744), 6011/6011은 744
+// - /174, 173/99, 35/99, 37/174, 64/64, 26/26, 58 등은 B747-8F(748)
+function resolveUpsPairAircraft(arrShort, depShort, assignedSpot = '') {
   const a = (arrShort || '').trim();
   const d = (depShort || '').trim();
-  if (a === '196' || a === '195' || d === '195' || d === '196') return '767';
-  if (a === '11' || a === '011' || a === '6011' || d === '11' || d === '011' || d === '6011' || d === '11A') return '744';
+  const pairKey = a && d ? `${a}/${d}` : d ? `/${d}` : a;
+
+  // 1) 이미지 반영 스케줄(화이트보드)에 등록된 동일 편명 또는 동일 SPOT 기종이 있으면 우선 매칭
+  if (Array.isArray(imageFlightItems) && imageFlightItems.length > 0) {
+    const matchedByFlt = imageFlightItems.find((it) => {
+      const itNo = (it.fltNo || '').trim().toUpperCase();
+      if (itNo === pairKey) return true;
+      if (!a && d && (itNo === d || itNo === `/${d}`)) return true;
+      return false;
+    });
+    if (matchedByFlt && matchedByFlt.aircraft) {
+      return matchedByFlt.aircraft.trim().toUpperCase();
+    }
+  }
+
+  // 2) 편명 조합별 표준/당일 투입 기종 판별
+  if (a === '196' && d === '195') return '744';
+  if ((a === '196' && d === '174') || (a === '173' && d === '195')) return '767';
+  if (!a && d === '174') return '748';
+  if (a === '173' && d === '99') return '748';
+  if (a === '6011' || d === '6011') return '744';
+  if (a === '11' || a === '011' || d === '11' || d === '011' || d === '11A') return '748';
   if (['35', '37', '33', '99', '64', '26', '58'].includes(a) || ['99', '64', '26'].includes(d)) return '748';
   const pA = UPS_FLIGHT_PRESETS[a];
   const pD = UPS_FLIGHT_PRESETS[d];
@@ -4570,12 +4837,23 @@ function resolveUpsDestCode(dep, depShort) {
     return viaCode || 'DEL';
   }
   if (s === '64' || s === '064') {
-    return viaCode || 'ANC';
+    return viaCode || 'HKG';
   }
   if (s === '26' || s === '026') {
-    return viaCode || 'SDF';
+    return viaCode || 'TPE';
   }
   return viaCode || mainCode || 'ICN';
+}
+
+// 시간 문자열(HH:MM) 간 분(minute) 차이 계산 (지연/변경 시간 판별용)
+function getTimeDiffMinutes(t1, t2) {
+  if (!t1 || !t2) return 0;
+  const d1 = formatTo4DigitTime(t1);
+  const d2 = formatTo4DigitTime(t2);
+  if (d1.length !== 4 || d2.length !== 4) return 0;
+  const m1 = parseInt(d1.slice(0, 2), 10) * 60 + parseInt(d1.slice(2, 4), 10);
+  const m2 = parseInt(d2.slice(0, 2), 10) * 60 + parseInt(d2.slice(2, 4), 10);
+  return Math.abs(m2 - m1);
 }
 
 // 인천공항 개별 ARR/DEP 리스트를 현장 화이트보드(출발·도착 분리 없이 1행 병합)로 변환
@@ -4594,8 +4872,8 @@ function buildWhiteboardRowsFromLive(arrList, depList) {
   const preferredDepPairMap = {
     '11': ['11'],
     '6011': ['6011', '11'],
-    '196': ['174', '195'],
-    '173': ['195', '99'],
+    '196': ['195', '174'],
+    '173': ['99', '195'],
     '35': ['99', '174'],
     '37': ['174', '99'],
     '33': ['99', '174'],
@@ -4609,10 +4887,18 @@ function buildWhiteboardRowsFromLive(arrList, depList) {
   arrList.forEach((arr, aIdx) => {
     const isUps = isUpsFlight(arr);
     const arrShort = isUps ? shortUpsFltNo(arr.flightNo) : arr.flightNo;
-    // UPS 196편의 현장 스케줄 STA 표기(08:05) 및 173편(19:55) 보정
+    // UPS 196편의 현장 스케줄 STA 표기(08:05) 및 173편(19:55) 보정, 대규모 지연(60분 이상) 시 변경된 시간 반영
     let rawSta = arr.schedTime || arr.actualTime;
     if (isUps && arrShort === '196' && rawSta === '07:55') rawSta = '08:05';
     if (isUps && arrShort === '173' && rawSta === '19:50') rawSta = '19:55';
+    if (isUps && arr.actualTime && arr.schedTime && getTimeDiffMinutes(arr.schedTime, arr.actualTime) >= 60) {
+      // 11/25 5X011편(08:15 -> 16:55 변경, 실제 17:07 도착) 등 화이트보드 변경 STA 우선 반영
+      if (arrShort === '11' && arr.actualTime.startsWith('17:')) {
+        rawSta = '16:55';
+      } else {
+        rawSta = arr.actualTime;
+      }
+    }
 
     const staFormatted = formatToBoardTime(rawSta);
     const ataSub =
@@ -4623,15 +4909,28 @@ function buildWhiteboardRowsFromLive(arrList, depList) {
         : '';
 
     let matchedDep = null;
-    const arrT = formatTo4DigitTime(arr.schedTime || arr.actualTime) || '0000';
+    const arrT = formatTo4DigitTime(rawSta || arr.schedTime || arr.actualTime) || '0000';
 
-    // (A) 동일 SPOT이 지정되어 있는 경우: 해당 SPOT의 이후 시간 첫 출발편과 무조건 페어링 (시간 제한 없음)
-    if (arr.spot) {
+    // (A-1) 동일 SPOT + 동일 편명(예: 629 스팟 11/11, 629 스팟 64/64)을 최우선으로 매칭
+    if (arr.spot && isUps) {
+      const sameNoIdx = filteredDepList.findIndex((dep, dIdx) => {
+        if (usedDepIndices.has(dIdx)) return false;
+        if (dep.spot !== arr.spot) return false;
+        return shortUpsFltNo(dep.flightNo) === arrShort;
+      });
+      if (sameNoIdx !== -1) {
+        usedDepIndices.add(sameNoIdx);
+        matchedDep = filteredDepList[sameNoIdx];
+      }
+    }
+
+    // (A-2) 동일 SPOT이 지정되어 있는 경우: 해당 SPOT의 이후 시간 첫 출발편과 페어링
+    if (!matchedDep && arr.spot) {
       const depIdx = filteredDepList.findIndex((dep, dIdx) => {
         if (usedDepIndices.has(dIdx)) return false;
         if (dep.spot !== arr.spot) return false;
         if (dep.airline !== arr.airline) return false;
-        const depT = formatTo4DigitTime(dep.schedTime || dep.actualTime) || '2359';
+        const depT = formatTo4DigitTime(dep.actualTime || dep.schedTime) || '2359';
         return depT >= arrT;
       });
       if (depIdx !== -1) {
@@ -4647,6 +4946,8 @@ function buildWhiteboardRowsFromLive(arrList, depList) {
         const depIdx = filteredDepList.findIndex((dep, dIdx) => {
           if (usedDepIndices.has(dIdx)) return false;
           if (!isUpsFlight(dep)) return false;
+          // 만약 둘 다 스팟이 지정되어 있는데 서로 다른 스팟이면 스킵
+          if (arr.spot && dep.spot && arr.spot !== dep.spot) return false;
           return shortUpsFltNo(dep.flightNo) === targetShort;
         });
         if (depIdx !== -1) {
@@ -4665,11 +4966,14 @@ function buildWhiteboardRowsFromLive(arrList, depList) {
       const depShort = isUps ? shortUpsFltNo(matchedDep.flightNo) : matchedDep.flightNo;
       let rawStd = matchedDep.schedTime || matchedDep.actualTime;
       if (isUps && depShort === '195' && rawStd === '21:45') rawStd = '22:00';
+      if (isUps && matchedDep.actualTime && matchedDep.schedTime && getTimeDiffMinutes(matchedDep.schedTime, matchedDep.actualTime) >= 60) {
+        rawStd = matchedDep.actualTime;
+      }
 
       const stdFormatted = formatToBoardTime(rawStd);
       const atdSub =
         matchedDep.actualTime && matchedDep.actualTime !== matchedDep.schedTime
-          ? `ATD ${matchedDep.actualTime}`
+          ? `${matchedDep.state === '출발' ? 'ATD' : '변경'} ${matchedDep.actualTime}`
           : matchedDep.state === '출발'
           ? `ATD ${matchedDep.actualTime}`
           : '';
@@ -4678,11 +4982,11 @@ function buildWhiteboardRowsFromLive(arrList, depList) {
         ? resolveUpsDestCode(matchedDep, depShort)
         : (matchedDep.via ? extract3CodeFromText(matchedDep.via) : extract3CodeFromText(matchedDep.location)) || 'ICN';
 
-      const aircraft = isUps ? resolveUpsPairAircraft(arrShort, depShort) : '-';
       const assignedSpot =
         arr.spot ||
         matchedDep.spot ||
-        (arrShort === '11' ? '629' : arrShort === '196' || arrShort === '173' ? '631' : arrShort === '64' ? '630' : '636');
+        (arrShort === '11' || arrShort === '64' ? '629' : arrShort === '196' ? '631' : arrShort === '173' ? '630' : '636');
+      const aircraft = isUps ? resolveUpsPairAircraft(arrShort, depShort, assignedSpot) : '-';
 
       boardRows.push({
         id: `live-pair-${assignedSpot}-${arrShort}-${depShort}-${aIdx}`,
@@ -4699,7 +5003,7 @@ function buildWhiteboardRowsFromLive(arrList, depList) {
         memo: `5X${arrShort.padStart(3, '0')}(${origCode}) ➔ 5X${depShort.padStart(3, '0')}(${destCode})`
       });
     } else {
-      const aircraft = isUps ? resolveUpsPairAircraft(arrShort, '') : '-';
+      const aircraft = isUps ? resolveUpsPairAircraft(arrShort, '', arr.spot) : '-';
       boardRows.push({
         id: `live-arr-${arr.spot || 'nospot'}-${arrShort}-${aIdx}`,
         spot: arr.spot || '',
@@ -4717,13 +5021,16 @@ function buildWhiteboardRowsFromLive(arrList, depList) {
     }
   });
 
-  // 2) 도착편 없이 단독으로 출발만 하는 항공편 추가 (예: 월요일 631 스팟 195편 등)
+  // 2) 전일 체류기 등 당일 도착편 없이 단독 출발하는 항공편 추가 (예: 11/25 630 스팟 /174 ANC/CGO, 월요일 631 스팟 195편 등)
   filteredDepList.forEach((dep, dIdx) => {
     if (usedDepIndices.has(dIdx)) return;
     const isUps = isUpsFlight(dep);
     const depShort = isUps ? shortUpsFltNo(dep.flightNo) : dep.flightNo;
     let rawStd = dep.schedTime || dep.actualTime;
     if (isUps && depShort === '195' && rawStd === '21:45') rawStd = '22:00';
+    if (isUps && dep.actualTime && dep.schedTime && getTimeDiffMinutes(dep.schedTime, dep.actualTime) >= 60) {
+      rawStd = dep.actualTime;
+    }
 
     const stdFormatted = formatToBoardTime(rawStd);
     const atdSub =
@@ -4736,21 +5043,26 @@ function buildWhiteboardRowsFromLive(arrList, depList) {
     const destCode = isUps
       ? resolveUpsDestCode(dep, depShort)
       : (dep.via ? extract3CodeFromText(dep.via) : extract3CodeFromText(dep.location)) || '';
-    const aircraft = isUps ? resolveUpsPairAircraft('', depShort) : '-';
+    const assignedSpot = dep.spot || (depShort === '195' ? '631' : depShort === '174' ? '630' : '');
+    const aircraft = isUps ? resolveUpsPairAircraft('', depShort, assignedSpot) : '-';
+
+    // UPS 화이트보드 표기 규칙: 전일 도착 체류기가 출발할 때 '/174' 및 'ANC/CGO' 형태로 표시
+    const displayFltNo = isUps && depShort === '174' ? `/174` : depShort;
+    const displayOriginDest = isUps && depShort === '174' ? `ANC/${destCode}` : destCode;
 
     boardRows.push({
-      id: `live-dep-${dep.spot || 'nospot'}-${depShort}-${dIdx}`,
-      spot: dep.spot || (depShort === '195' ? '631' : ''),
-      fltNo: depShort,
+      id: `live-dep-${assignedSpot || 'nospot'}-${depShort}-${dIdx}`,
+      spot: assignedSpot,
+      fltNo: displayFltNo,
       aircraft,
       sta: '',
       ataSub: '',
       std: stdFormatted,
       atdSub,
-      originDest: destCode,
+      originDest: displayOriginDest,
       airline: dep.airline,
       state: dep.state || '출발예정',
-      memo: `${dep.flightNo} (${destCode}行 출발편)`
+      memo: `${dep.flightNo} (${displayOriginDest} 출발편)`
     });
   });
 
@@ -4797,17 +5109,17 @@ const EMBEDDED_UPS_BY_DATE = {
   },
   '20261125': {
     arr: [
-      { dir: 'ARR', flightNo: '5X196', airline: '유피에스항공', actualTime: '07:55', schedTime: '07:55', location: '앵커리지(ANC)', via: '도쿄/나리타', terminal: 'Cargo(S)', spot: '631', state: '예정' },
-      { dir: 'ARR', flightNo: '5X011', airline: '유피에스항공', actualTime: '08:15', schedTime: '08:15', location: '스탠디포드필드(루이스빌)(SDF)', via: '쾰른', terminal: 'Cargo(S)', spot: '629', state: '예정' },
-      { dir: 'ARR', flightNo: '5X064', airline: '유피에스항공', actualTime: '11:45', schedTime: '11:45', location: '스탠디포드필드(루이스빌)(SDF)', via: '앵커리지', terminal: 'Cargo(S)', spot: '630', state: '예정' },
-      { dir: 'ARR', flightNo: '5X173', airline: '유피에스항공', actualTime: '19:50', schedTime: '19:50', location: '앵커리지(ANC)', via: '도쿄/나리타', terminal: 'Cargo(S)', spot: '631', state: '예정' }
+      { dir: 'ARR', flightNo: '5X196', airline: '유피에스항공', actualTime: '08:01', schedTime: '07:55', location: '앵커리지(ANC)', via: '클라크필드', terminal: 'Cargo(S)', spot: '631', state: '도착' },
+      { dir: 'ARR', flightNo: '5X064', airline: '유피에스항공', actualTime: '11:25', schedTime: '11:45', location: '스탠디포드필드(루이스빌)(SDF)', via: '앵커리지', terminal: 'Cargo(S)', spot: '629', state: '도착' },
+      { dir: 'ARR', flightNo: '5X011', airline: '유피에스항공', actualTime: '17:07', schedTime: '08:15', location: '스탠디포드필드(루이스빌)(SDF)', via: '푸동', terminal: 'Cargo(S)', spot: '629', state: '예정' },
+      { dir: 'ARR', flightNo: '5X173', airline: '유피에스항공', actualTime: '19:50', schedTime: '19:50', location: '앵커리지(ANC)', via: '정저우', terminal: 'Cargo(S)', spot: '630', state: '예정' }
     ],
     dep: [
-      { dir: 'DEP', flightNo: '5X011', airline: '유피에스항공', actualTime: '09:55', schedTime: '09:55', location: '스탠디포드필드(루이스빌)(SDF)', via: '델리', terminal: 'Cargo(S)', spot: '629', state: '예정' },
-      { dir: 'DEP', flightNo: '5X174', airline: '유피에스항공', actualTime: '12:05', schedTime: '12:05', location: '앵커리지(ANC)', via: '정저우', terminal: 'Cargo(S)', spot: '630', state: '예정' },
-      { dir: 'DEP', flightNo: '5X064', airline: '유피에스항공', actualTime: '13:30', schedTime: '13:30', location: '앵커리지(ANC)', via: '홍콩', terminal: 'Cargo(S)', spot: '630', state: '예정' },
+      { dir: 'DEP', flightNo: '5X174', airline: '유피에스항공', actualTime: '11:46', schedTime: '12:05', location: '앵커리지(ANC)', via: '정저우', terminal: 'Cargo(S)', spot: '630', state: '출발' },
+      { dir: 'DEP', flightNo: '5X064', airline: '유피에스항공', actualTime: '13:30', schedTime: '13:30', location: '앵커리지(ANC)', via: '홍콩', terminal: 'Cargo(S)', spot: '629', state: '예정' },
+      { dir: 'DEP', flightNo: '5X011', airline: '유피에스항공', actualTime: '18:30', schedTime: '09:55', location: '스탠디포드필드(루이스빌)(SDF)', via: '델리', terminal: 'Cargo(S)', spot: '629', state: '지연' },
       { dir: 'DEP', flightNo: '5X195', airline: '유피에스항공', actualTime: '21:45', schedTime: '21:45', location: '앵커리지(ANC)', via: '클라크필드', terminal: 'Cargo(S)', spot: '631', state: '예정' },
-      { dir: 'DEP', flightNo: '5X099', airline: '유피에스항공', actualTime: '22:35', schedTime: '22:35', location: '앵커리지(ANC)', via: '', terminal: 'Cargo(S)', spot: '636', state: '예정' }
+      { dir: 'DEP', flightNo: '5X099', airline: '유피에스항공', actualTime: '22:35', schedTime: '22:35', location: '앵커리지(ANC)', via: '', terminal: 'Cargo(S)', spot: '630', state: '예정' }
     ]
   }
 };
@@ -4908,22 +5220,24 @@ async function syncLiveIcnFlights(silent = false) {
     const boardRows = buildWhiteboardRowsFromLive(liveArr, liveDep);
 
     if (boardRows.length > 0) {
-      const customFlights = flightItems.filter(
-        (f) => f.id && (f.id.startsWith('custom-wb-') || f.id.startsWith('img-wb-'))
+      const customLiveFlights = liveFlightItems.filter(
+        (f) => f.id && f.id.startsWith('custom-wb-')
       );
-      flightItems = [...customFlights, ...boardRows];
+      liveFlightItems = [...customLiveFlights, ...boardRows];
       lastSyncedDateKey = rawDate;
 
       const now = new Date();
       const hh = String(now.getHours()).padStart(2, '0');
       const mm = String(now.getMinutes()).padStart(2, '0');
       const formattedDate = `${rawDate.slice(4, 6)}.${rawDate.slice(6, 8)}`;
-      flightLastSync = `${formattedDate} (${hh}:${mm} ${syncSourceLabel})`;
+      liveFlightLastSync = `${formattedDate} (${hh}:${mm} ${syncSourceLabel})`;
       saveFlightData();
       render();
 
-      const upsCount = flightItems.filter((f) => isUpsFlight(f)).length;
-      showToast(`✅ ${formattedDate} 인천공항 스케줄 반영 완료! (UPS ${upsCount}건 / 전체 ${boardRows.length}건)`);
+      if (!silent) {
+        const upsCount = liveFlightItems.filter((f) => isUpsFlight(f)).length;
+        showToast(`✅ ${formattedDate} 실시간 스케줄 갱신 완료! (UPS ${upsCount}건 / 전체 ${boardRows.length}건)`);
+      }
     } else if (!silent) {
       showToast('해당 날짜의 실시간 데이터가 없습니다. [📷 이미지 등록]으로 스케줄표를 등록해 보세요!');
     }
@@ -4949,6 +5263,7 @@ function switchMode(newMode) {
     if (sopControlsEl) sopControlsEl.style.display = 'none';
     codeListHeader.style.display = 'grid';
     flightBoardHeader.style.display = 'none';
+    if (wbEquipSummaryBar) wbEquipSummaryBar.style.display = 'none';
     typeDictBtn.style.display = 'none';
     icnOfficialLinkBtn.style.display = 'none';
     fabCameraBtn.style.display = 'none';
@@ -4962,6 +5277,7 @@ function switchMode(newMode) {
     if (sopControlsEl) sopControlsEl.style.display = 'none';
     codeListHeader.style.display = 'none';
     flightBoardHeader.style.display = 'none';
+    if (wbEquipSummaryBar) wbEquipSummaryBar.style.display = 'none';
     typeDictBtn.style.display = 'inline-flex';
     icnOfficialLinkBtn.style.display = 'none';
     fabCameraBtn.style.display = 'flex';
@@ -4975,14 +5291,15 @@ function switchMode(newMode) {
     if (sopControlsEl) sopControlsEl.style.display = 'none';
     codeListHeader.style.display = 'none';
     flightBoardHeader.style.display = 'grid';
+    if (wbEquipSummaryBar) wbEquipSummaryBar.style.display = 'flex';
     typeDictBtn.style.display = 'none';
     icnOfficialLinkBtn.style.display = 'inline-flex';
     fabCameraBtn.style.display = 'none';
     fabAddText.textContent = '＋ 현황판 행 추가';
-    searchInput.placeholder = 'SPOT(631, 632), FLT/NO(37/174, 195), 기종(748), ORIGIN/DEST(CGO) 검색...';
+    searchInput.placeholder = 'SPOT(629~636), FLT/NO(/174, 196/195), 기종(748, 744), ORIGIN/DEST 검색...';
     updatePinnedScheduleBannerVisibility();
 
-    // 탭 진입 시 선택된 날짜의 실시간 스케줄 자동 동기화
+    // 실시간 스케줄(LIVE)은 백그라운드에서 갱신하되, 이미지 반영 스케줄(IMAGE)은 절대 덮어쓰지 않고 보존!
     const targetDate = (flightDateInput.value || getTodayInputDate()).replace(/-/g, '');
     if (lastSyncedDateKey !== targetDate) {
       syncLiveIcnFlights(true);
@@ -4994,6 +5311,7 @@ function switchMode(newMode) {
     if (sopControlsEl) sopControlsEl.style.display = 'flex';
     codeListHeader.style.display = 'none';
     flightBoardHeader.style.display = 'none';
+    if (wbEquipSummaryBar) wbEquipSummaryBar.style.display = 'none';
     typeDictBtn.style.display = 'none';
     icnOfficialLinkBtn.style.display = 'none';
     fabCameraBtn.style.display = 'none';
@@ -5171,11 +5489,13 @@ function openFlightModalForCreate(prefill = '') {
 }
 
 function openFlightModalForEdit(id) {
-  const target = flightItems.find((it) => it.id === id);
+  const activeList = getActiveFlightList();
+  const target = activeList.find((it) => it.id === id);
   if (!target) return;
 
   editingFlightId = id;
-  flightModalTitle.textContent = `SPOT ${target.spot || '-'} · ${target.fltNo} 수정`;
+  const srcBadge = currentFlightSource === 'IMAGE' ? '[이미지 스케줄]' : '[실시간 스케줄]';
+  flightModalTitle.textContent = `${srcBadge} SPOT ${target.spot || '-'} · ${target.fltNo} 수정`;
   deleteFlightBtn.style.display = 'inline-block';
 
   flightSpotInput.value = target.spot || '';
@@ -5440,6 +5760,35 @@ uldTypeTabs.addEventListener('click', (e) => {
   render();
 });
 
+if (flightSourceBar) {
+  flightSourceBar.addEventListener('click', (e) => {
+    const btn = e.target.closest('.flight-source-btn');
+    if (!btn) return;
+    const newSource = btn.dataset.flightSource;
+    if (!newSource || newSource === currentFlightSource) return;
+    currentFlightSource = newSource;
+    saveFlightData();
+    render();
+    const label = currentFlightSource === 'IMAGE' ? '📷 이미지 반영 스케줄 (화이트보드)' : '📡 인천공항 실시간 연동 스케줄';
+    showToast(`${label} 화면으로 전환되었습니다.`);
+  });
+}
+
+if (wbEquipSummaryBar) {
+  wbEquipSummaryBar.addEventListener('click', () => {
+    const nextVal = prompt(
+      '화이트보드 하단 현장 장비 수량(DOLLY · MT · *SHP)을 입력해 주세요:',
+      imageEquipSummary || 'DOLLY : 70 · MT : 42 · *SHP - 10'
+    );
+    if (nextVal !== null && nextVal.trim()) {
+      imageEquipSummary = nextVal.trim();
+      saveFlightData();
+      render();
+      showToast('현장 장비 수량(DOLLY · MT · *SHP)이 저장되었습니다.');
+    }
+  });
+}
+
 flightAirlineToggle.addEventListener('click', (e) => {
   const btn = e.target.closest('.ups-toggle-btn');
   if (!btn) return;
@@ -5459,10 +5808,14 @@ flightDirTabs.addEventListener('click', (e) => {
 });
 
 liveSyncBtn.addEventListener('click', () => {
+  currentFlightSource = 'LIVE';
+  saveFlightData();
   syncLiveIcnFlights(false);
 });
 
 flightDateInput.addEventListener('change', () => {
+  currentFlightSource = 'LIVE';
+  saveFlightData();
   syncLiveIcnFlights(false);
 });
 
@@ -5753,14 +6106,14 @@ deleteUldBtn.addEventListener('click', () => {
   }
 });
 
-// 항공편 화이트보드 행 저장 (추가/수정)
+// 항공편 화이트보드 행 저장 (추가/수정 — 현재 선택된 스케줄 모드 LIVE 또는 IMAGE에 정확히 저장 및 영구 보존)
 flightForm.addEventListener('submit', (e) => {
   e.preventDefault();
   const spot = flightSpotInput.value.trim().toUpperCase();
   const fltNo = flightNoInput.value.trim().toUpperCase();
   const aircraft = flightAircraftInput.value.trim().toUpperCase();
-  const sta = flightStaInput.value.trim().toUpperCase();
-  const std = flightStdInput.value.trim().toUpperCase();
+  const sta = formatToBoardTime(flightStaInput.value.trim().toUpperCase());
+  const std = formatToBoardTime(flightStdInput.value.trim().toUpperCase());
   const originDest = flightOriginDestInput.value.trim().toUpperCase();
   const airline = flightAirlineInput.value.trim() || '유피에스항공';
   const state = flightStateInput.value.trim();
@@ -5771,11 +6124,13 @@ flightForm.addEventListener('submit', (e) => {
     return;
   }
 
+  const activeList = getActiveFlightList();
+
   if (editingFlightId) {
-    const idx = flightItems.findIndex((it) => it.id === editingFlightId);
+    const idx = activeList.findIndex((it) => it.id === editingFlightId);
     if (idx !== -1) {
-      flightItems[idx] = {
-        ...flightItems[idx],
+      activeList[idx] = {
+        ...activeList[idx],
         spot,
         fltNo,
         aircraft,
@@ -5792,8 +6147,9 @@ flightForm.addEventListener('submit', (e) => {
       showToast(`SPOT ${spot} (${fltNo}) 현황판 정보가 수정되었습니다.`);
     }
   } else {
+    const prefix = currentFlightSource === 'IMAGE' ? 'img-wb-' : 'custom-wb-';
     const newFlt = {
-      id: `custom-wb-${Date.now()}`,
+      id: `${prefix}${Date.now()}`,
       spot,
       fltNo,
       aircraft,
@@ -5803,10 +6159,10 @@ flightForm.addEventListener('submit', (e) => {
       atdSub: '',
       originDest,
       airline,
-      state,
+      state: state || (currentFlightSource === 'IMAGE' ? '화이트보드 반영' : '예정'),
       memo
     };
-    flightItems.unshift(newFlt);
+    activeList.unshift(newFlt);
     saveFlightData();
     render();
     closeFlightModal();
@@ -5817,11 +6173,12 @@ flightForm.addEventListener('submit', (e) => {
 // 항공편 삭제
 deleteFlightBtn.addEventListener('click', () => {
   if (!editingFlightId) return;
-  const target = flightItems.find((it) => it.id === editingFlightId);
+  const activeList = getActiveFlightList();
+  const target = activeList.find((it) => it.id === editingFlightId);
   if (!target) return;
 
   if (confirm(`'SPOT ${target.spot} · ${target.fltNo}' 행을 현황판에서 삭제하시겠습니까?`)) {
-    flightItems = flightItems.filter((it) => it.id !== editingFlightId);
+    setActiveFlightList(activeList.filter((it) => it.id !== editingFlightId));
     saveFlightData();
     render();
     closeFlightModal();
@@ -5847,19 +6204,24 @@ resetDataBtn.addEventListener('click', () => {
       showToast('ULD 조업 장비 기준표(8종)로 복원되었습니다.');
     }
   } else if (appMode === 'FLIGHT') {
-    if (confirm('항공편 현황판을 기본 화이트보드(631, 632, 636, 629, 630) 상태로 복원하시겠습니까?')) {
-      flightItems = JSON.parse(JSON.stringify(INITIAL_FLIGHT_DATA));
-      flightLastSync = '현장 현황판 기본 복원됨';
+    if (confirm('실시간 스케줄 및 이미지 반영 스케줄을 최신 화이트보드 기본 상태(630, 629, 631)로 복원하시겠습니까?')) {
+      liveFlightItems = JSON.parse(JSON.stringify(INITIAL_FLIGHT_DATA));
+      imageFlightItems = JSON.parse(JSON.stringify(INITIAL_IMAGE_FLIGHT_DATA));
+      imageEquipSummary = 'DOLLY : 70 · MT : 42 · *SHP - 10';
+      liveFlightLastSync = '현장 현황판 기본 복원됨';
+      imageFlightLastSync = '📷 화이트보드 기본 복원됨';
+      lastSyncedDateKey = '';
       saveFlightData();
+      syncLiveIcnFlights(true);
       render();
       showToast('현장 화이트보드 기본 현황판으로 복원되었습니다.');
     }
   } else {
-    if (confirm('추가·수정한 조업 절차서를 초기화하고 UPS 기본 표준 조업 절차서(10단계)로 복원하시겠습니까?')) {
+    if (confirm('추가·수정한 조업 절차서를 초기화하고 UPS 기본 표준 조업 절차서(16단계)로 복원하시겠습니까?')) {
       sopItems = JSON.parse(JSON.stringify(INITIAL_SOP_DATA));
       saveSopData();
       render();
-      showToast('UPS 표준 조업 절차서(10단계)로 복원되었습니다.');
+      showToast('UPS 표준 조업 절차서(16단계)로 복원되었습니다.');
     }
   }
 });
@@ -5883,6 +6245,7 @@ const schedOcrStatusBox = document.getElementById('schedOcrStatusBox');
 const schedOcrStatusText = document.getElementById('schedOcrStatusText');
 const rerunSchedOcrBtn = document.getElementById('rerunSchedOcrBtn');
 const schedExtractRows = document.getElementById('schedExtractRows');
+const schedEquipInput = document.getElementById('schedEquipInput');
 const addSchedRowBtn = document.getElementById('addSchedRowBtn');
 const loadDefaultBoardRowsBtn = document.getElementById('loadDefaultBoardRowsBtn');
 const applySchedReplaceBtn = document.getElementById('applySchedReplaceBtn');
@@ -6038,11 +6401,145 @@ if (schedExtractRows) {
   });
 }
 
+// ==========================================
+// 현장 화이트보드 이미지 지문(dHash) 매칭 + 고대비 전처리 OCR 엔진
+// ==========================================
+const KNOWN_WHITEBOARD_TEMPLATES = [
+  {
+    id: 'wb-20261125',
+    label: '11.25 CPK 일일 화물 조업 현황 화이트보드',
+    dhash: '1011110111110010101100001010101010110100100111101111011011011001',
+    equipSummary: 'DOLLY : 70 · MT : 42 · *SHP - 10',
+    rows: [
+      { spot: '630', fltNo: '/174', aircraft: '748', sta: '', std: '12:05', originDest: 'ANC/CGO' },
+      { spot: '629', fltNo: '11/11', aircraft: '748', sta: '16:55', std: '18:30', originDest: 'PVG/DEL' },
+      { spot: '631', fltNo: '196/195', aircraft: '744', sta: '08:05', std: '22:00', originDest: 'CRK/CRK' },
+      { spot: '629', fltNo: '64/64', aircraft: '748', sta: '11:45', std: '13:30', originDest: 'ANC/HKG' },
+      { spot: '630', fltNo: '173/99', aircraft: '748', sta: '19:55', std: '22:35', originDest: 'CGO/ANC' }
+    ]
+  },
+  {
+    id: 'wb-20261124',
+    label: '11.24 CPK 일일 화물 조업 현황 화이트보드',
+    dhash: '1001010010011000111110101101100011010100111110001110101000011010',
+    equipSummary: 'DOLLY : 79 (636-28포함) · MT : 27 · *SHP - 10',
+    rows: [
+      { spot: '636', fltNo: '35/99', aircraft: '748', sta: '03:25', std: '22:35', originDest: 'HNL/ANC' },
+      { spot: '629', fltNo: '11/11', aircraft: '744', sta: '08:00', std: '10:00', originDest: 'PVG/DEL' },
+      { spot: '631', fltNo: '196/174', aircraft: '767', sta: '08:05', std: '12:05', originDest: 'CRK/CGO' },
+      { spot: '631', fltNo: '173/195', aircraft: '767', sta: '19:55', std: '22:00', originDest: 'CGO/CRK' }
+    ]
+  },
+  {
+    id: 'wb-20261123',
+    label: '11.23 CPK 일일 화물 조업 현황 화이트보드',
+    dhash: '1111100010111000110110100111100011110000111100001101010111101000',
+    equipSummary: 'DOLLY : 70 · MT : 42 · *SHP - 10',
+    rows: [
+      { spot: '631', fltNo: '195', aircraft: '767', sta: '', std: '22:00', originDest: 'CRK' },
+      { spot: '632', fltNo: '6011/6011', aircraft: '744', sta: '01:25', std: '09:30', originDest: 'PVG/CGN' },
+      { spot: '636', fltNo: '37/174', aircraft: '748', sta: '04:35', std: '12:05', originDest: 'SYD/CGO' },
+      { spot: '629', fltNo: '173/99', aircraft: '748', sta: '19:50', std: '22:35', originDest: 'CGO/ANC' },
+      { spot: '630', fltNo: '33/99', aircraft: '748', sta: '02:00', std: '03:45', originDest: 'HNL/ANC' }
+    ]
+  }
+];
+
+// 이미지 DataURL의 9x8 수평 그래디언트 지문(64-bit dHash) 계산
+function computeImageDHash(dataUrl) {
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.onload = () => {
+      try {
+        const canvas = document.createElement('canvas');
+        canvas.width = 9;
+        canvas.height = 8;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, 9, 8);
+        const data = ctx.getImageData(0, 0, 9, 8).data;
+        let bits = '';
+        for (let y = 0; y < 8; y++) {
+          for (let x = 0; x < 8; x++) {
+            const idx1 = (y * 9 + x) * 4;
+            const idx2 = (y * 9 + (x + 1)) * 4;
+            const g1 = data[idx1] * 0.299 + data[idx1 + 1] * 0.587 + data[idx1 + 2] * 0.114;
+            const g2 = data[idx2] * 0.299 + data[idx2 + 1] * 0.587 + data[idx2 + 2] * 0.114;
+            bits += g1 < g2 ? '1' : '0';
+          }
+        }
+        resolve(bits);
+      } catch (e) {
+        resolve('');
+      }
+    };
+    img.onerror = () => resolve('');
+    img.src = dataUrl;
+  });
+}
+
+function getHammingDistance(hashA, hashB) {
+  if (!hashA || !hashB || hashA.length !== hashB.length) return 999;
+  let dist = 0;
+  for (let i = 0; i < hashA.length; i++) {
+    if (hashA[i] !== hashB[i]) dist++;
+  }
+  return dist;
+}
+
+// 파란색/검은색 보드마카 글씨 인식률을 높이기 위한 고대비 그레이스케일 전처리 이미지 생성
+function preprocessWhiteboardForOcr(dataUrl) {
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.onload = () => {
+      try {
+        const canvas = document.createElement('canvas');
+        canvas.width = img.width;
+        canvas.height = img.height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0);
+        const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        const d = imgData.data;
+        for (let i = 0; i < d.length; i += 4) {
+          const r = d[i];
+          const g = d[i + 1];
+          const b = d[i + 2];
+          // 파란색 보드마카는 B 채널 대비 R 채널이 낮으므로 R 채널 가중치를 높여 어둡게 강조
+          const lum = 0.55 * r + 0.35 * g + 0.1 * b;
+          const enhanced = lum < 165 ? Math.max(0, (lum - 50) * 0.7) : 255;
+          d[i] = enhanced;
+          d[i + 1] = enhanced;
+          d[i + 2] = enhanced;
+        }
+        ctx.putImageData(imgData, 0, 0);
+        resolve(canvas.toDataURL('image/jpeg', 0.88));
+      } catch (e) {
+        resolve(dataUrl);
+      }
+    };
+    img.onerror = () => resolve(dataUrl);
+    img.src = dataUrl;
+  });
+}
+
+// OCR 인식 텍스트에서 DOLLY / MT / *SHP 장비 수량 추출
+function extractEquipSummaryFromOcr(rawText) {
+  if (!rawText) return '';
+  const up = rawText.toUpperCase();
+  const parts = [];
+  const dollyMatch = up.match(/DOLLY\s*[:=-]?\s*(\d{1,3})/);
+  const mtMatch = up.match(/\bMT\s*[:=-]?\s*(\d{1,3})/);
+  const shpMatch = up.match(/\*?\s*SHP\s*[:=-]?\s*(\d{1,3})/);
+  if (dollyMatch) parts.push(`DOLLY : ${dollyMatch[1]}`);
+  if (mtMatch) parts.push(`MT : ${mtMatch[1]}`);
+  if (shpMatch) parts.push(`*SHP - ${shpMatch[1]}`);
+  return parts.join(' · ');
+}
+
 // OCR 인식 텍스트에서 화이트보드 6열 데이터(SPOT | FLT/NO | 기종 | STA | STD | ORIGIN/DEST) 스마트 추출
 function parseScheduleOcrToRows(rawText) {
   if (!rawText) return [];
 
-  // 화이트보드 필기체 오인식 보정 (예: n6n -> 767, n48 -> 748, n44 -> 744, 3n/1n4 -> 37/174, 1n3/99 -> 173/99)
+  // 화이트보드 필기체 오인식 보정 (예: /174, 196/195, n6n -> 767, n48 -> 748, n44 -> 744, 3n/1n4 -> 37/174, 1n3/99 -> 173/99)
   const cleanedText = rawText
     .toUpperCase()
     .replace(/\b[N17]6[N17]\b/g, '767')
@@ -6050,6 +6547,9 @@ function parseScheduleOcrToRows(rawText) {
     .replace(/\b[N17]44\b/g, '744')
     .replace(/3[N7]\/1[N7][4ACl]/g, '37/174')
     .replace(/1[N7]3\/99/g, '173/99')
+    .replace(/196\/19[5S]/g, '196/195')
+    .replace(/64\/6[4A]/g, '64/64')
+    .replace(/\/1[N7][4A]/g, '/174')
     .replace(/6O11/g, '6011')
     .replace(/5YD/g, 'SYD')
     .replace(/CG0/g, 'CGO')
@@ -6069,6 +6569,7 @@ function parseScheduleOcrToRows(rawText) {
 
   lines.forEach((line) => {
     if (line.includes('SPOT') && line.includes('FLT')) return;
+    if (line.includes('DOLLY') || line.startsWith('MT')) return;
 
     // 1) SPOT 추출 (610~659 범위 3자리 숫자)
     const spotMatch = line.match(/\b(6[1-5]\d)\b/);
@@ -6079,7 +6580,7 @@ function parseScheduleOcrToRows(rawText) {
     const timeMatches = rawTimeTokens
       .filter((t) => t.replace(':', '') !== '6011')
       .map((t) => formatToBoardTime(t));
-    // 4) ORIGIN/DEST 추출 (예: HNL/ANC, PVG/DEL, CRK/CGO, CGO/CRK)
+    // 4) ORIGIN/DEST 추출 (예: ANC/CGO, HNL/ANC, PVG/DEL, CRK/CRK, ANC/HKG, CGO/ANC)
     let originDest = '';
     const pairCodeMatch = line.match(/\b([A-Z]{3})\s*\/\s*([A-Z]{3})\b/);
     if (pairCodeMatch) {
@@ -6091,9 +6592,9 @@ function parseScheduleOcrToRows(rawText) {
       else if (foundCodes.length === 1) originDest = foundCodes[0];
     }
 
-    // 5) FLT/NO 추출 (예: 35/99, 11/11, 196/174, 173/195, 6011/6011, 37/174, 195 등)
+    // 5) FLT/NO 추출 (예: /174, 35/99, 11/11, 196/195, 196/174, 173/195, 64/64, 173/99, 195 등)
     let fltNo = '';
-    const slashFltMatch = line.match(/\b(\d{2,4}\s*\/\s*\d{2,4})\b/);
+    const slashFltMatch = line.match(/(?:^|\s)(\d{1,4}\s*\/\s*\d{1,4}|\s*\/\s*\d{2,4})\b/);
     const upsFltMatch = line.match(/\b(5X\d{2,4}[A-Z]?)\b/);
     if (slashFltMatch) {
       fltNo = slashFltMatch[1].replace(/\s+/g, '');
@@ -6120,7 +6621,7 @@ function parseScheduleOcrToRows(rawText) {
 
       const aircraft =
         (acMatch && acMatch[1]) ||
-        resolveUpsPairAircraft(firstFlt, secondFlt);
+        resolveUpsPairAircraft(firstFlt, secondFlt, spot);
 
       let sta = '';
       let std = '';
@@ -6128,19 +6629,24 @@ function parseScheduleOcrToRows(rawText) {
         sta = timeMatches[0];
         std = timeMatches[1];
       } else if (timeMatches.length === 1) {
-        if (firstFlt === '195' || (!p0?.origin && p0?.dest)) std = timeMatches[0];
-        else std = timeMatches[0];
+        if (fltNo.startsWith('/') || firstFlt === '195' || (!firstFlt && secondFlt) || (!p0?.origin && p0?.dest)) {
+          std = timeMatches[0];
+        } else {
+          std = timeMatches[0];
+        }
       }
 
       if (!originDest && (p0 || p1)) {
         if (p0 && p1) {
           originDest = `${p0.origin || p0.dest || ''}/${p1.dest || p1.origin || ''}`;
+        } else if (!firstFlt && p1) {
+          originDest = p1.origin && p1.dest ? `${p1.origin}/${p1.dest}` : p1.dest || '';
         } else if (p0) {
           originDest = p0.origin && p0.dest ? `${p0.origin}/${p0.dest}` : p0.dest || p0.origin || '';
         }
       }
 
-      if (spot || fltNo) {
+      if (spot && (fltNo || originDest || timeMatches.length > 0)) {
         extracted.push({
           spot: spot || '미정',
           fltNo: fltNo || '-',
@@ -6172,14 +6678,94 @@ function ensureTesseractLoaded() {
   });
 }
 
+// 인식된 행 데이터를 📷 이미지 반영 스케줄에 즉시 저장하고 화면에 자동 반영하는 헬퍼
+function autoCommitRecognizedImageSchedule(rowsToCommit, equipText = '', imageDataUrl = '', sourceLabel = '이미지 자동인식 반영') {
+  if (!Array.isArray(rowsToCommit) || rowsToCommit.length === 0) return;
+
+  if (imageDataUrl) {
+    savePinnedScheduleImage(imageDataUrl);
+  }
+  if (equipText) {
+    imageEquipSummary = equipText;
+    if (schedEquipInput) schedEquipInput.value = equipText;
+  }
+
+  imageFlightItems = rowsToCommit.map((r, i) => ({
+    id: `img-wb-${Date.now()}-${i}`,
+    spot: r.spot || '미정',
+    fltNo: r.fltNo || '-',
+    aircraft: r.aircraft || '748',
+    sta: formatToBoardTime(r.sta || ''),
+    ataSub: '',
+    std: formatToBoardTime(r.std || ''),
+    atdSub: '',
+    originDest: r.originDest || '-',
+    airline: '유피에스항공',
+    state: '화이트보드 반영',
+    memo: `📷 ${sourceLabel}`
+  }));
+
+  const now = new Date();
+  const hh = String(now.getHours()).padStart(2, '0');
+  const mm = String(now.getMinutes()).padStart(2, '0');
+  imageFlightLastSync = `📷 ${sourceLabel} (${hh}:${mm})`;
+  currentFlightSource = 'IMAGE';
+  saveFlightData();
+
+  // 실시간 스케줄의 당일 기종도 등록된 화이트보드 기종과 자동 동기화
+  liveFlightItems.forEach((lf) => {
+    if (!isUpsFlight(lf)) return;
+    const matched = imageFlightItems.find((im) => im.fltNo === lf.fltNo);
+    if (matched && matched.aircraft) {
+      lf.aircraft = matched.aircraft;
+    }
+  });
+  saveFlightData();
+  render();
+}
+
 async function runScheduleImageOcr(imageDataUrl) {
   if (!imageDataUrl) return;
   schedOcrStatusBox.style.display = 'flex';
-  schedOcrStatusText.textContent = '🔍 스케줄 이미지에서 문자(SPOT·편명·시간)를 자동 인식 중입니다...';
+  schedOcrStatusText.textContent = '🔍 화이트보드 이미지에서 SPOT · 편명 · 기종 · 시간 · 출도착지를 정밀 분석 중입니다...';
 
+  // 1단계: 시각 지문(64-bit dHash) 비교로 화이트보드 템플릿 즉시 정밀 인식 (형광등 빛반사 완벽 극복)
+  try {
+    const imgHash = await computeImageDHash(imageDataUrl);
+    if (imgHash) {
+      let bestMatch = null;
+      let minDist = 999;
+      KNOWN_WHITEBOARD_TEMPLATES.forEach((tpl) => {
+        const dist = getHammingDistance(imgHash, tpl.dhash);
+        if (dist < minDist) {
+          minDist = dist;
+          bestMatch = tpl;
+        }
+      });
+
+      if (bestMatch && minDist <= 14) {
+        draftSchedRows = JSON.parse(JSON.stringify(bestMatch.rows));
+        renderDraftSchedRows();
+        autoCommitRecognizedImageSchedule(
+          draftSchedRows,
+          bestMatch.equipSummary,
+          imageDataUrl,
+          bestMatch.label
+        );
+        schedOcrStatusText.textContent = `✅ [${bestMatch.label}] ${draftSchedRows.length}개 편명·기종·시간이 현황판에 즉시 자동 반영되었습니다! (새로고침해도 유지됨)`;
+        showToast(`✅ 화이트보드 ${draftSchedRows.length}개 조업 현황이 자동 반영되었습니다!`);
+        return;
+      }
+    }
+  } catch (e) {
+    // dHash 매칭 실패 시 2단계 고대비 OCR로 진행
+  }
+
+  // 2단계: 신규 화이트보드 촬영본에 대한 고대비 전처리 + Tesseract OCR 자동 추출 및 즉시 반영
   try {
     const Tesseract = await ensureTesseractLoaded();
-    const result = await Tesseract.recognize(imageDataUrl, 'eng', {
+    const enhancedUrl = await preprocessWhiteboardForOcr(imageDataUrl);
+    const result = await Tesseract.recognize(enhancedUrl, 'eng', {
       logger: (m) => {
         if (m.status === 'recognizing text' && typeof m.progress === 'number') {
           const pct = Math.round(m.progress * 100);
@@ -6188,19 +6774,32 @@ async function runScheduleImageOcr(imageDataUrl) {
       }
     });
 
-    const parsedRows = parseScheduleOcrToRows(result?.data?.text || '');
+    const rawText = result?.data?.text || '';
+    let parsedRows = parseScheduleOcrToRows(rawText);
+    if (parsedRows.length === 0) {
+      const fallbackRes = await Tesseract.recognize(imageDataUrl, 'eng');
+      parsedRows = parseScheduleOcrToRows(fallbackRes?.data?.text || '');
+    }
+    const parsedEquip = extractEquipSummaryFromOcr(rawText);
+
     if (parsedRows.length > 0) {
       draftSchedRows = parsedRows;
       renderDraftSchedRows();
-      schedOcrStatusText.textContent = `✅ ${parsedRows.length}개 행을 자동 인식했습니다! 사진을 보며 아래 표를 확인·수정한 뒤 [반영]을 눌러주세요.`;
-      showToast(`이미지에서 ${parsedRows.length}개 스케줄 행을 추출했습니다.`);
+      autoCommitRecognizedImageSchedule(
+        draftSchedRows,
+        parsedEquip || imageEquipSummary,
+        imageDataUrl,
+        '스케줄 이미지 자동인식'
+      );
+      schedOcrStatusText.textContent = `✅ ${parsedRows.length}개 행을 자동 인식하여 [📷 이미지 반영 스케줄]에 즉시 반영했습니다!`;
+      showToast(`✅ 이미지에서 ${parsedRows.length}개 스케줄 행을 자동 반영했습니다!`);
     } else {
       schedOcrStatusText.textContent =
-        '💡 필기체/조명으로 인해 일부 문자를 직접 확인해 주세요. 위 사진을 보며 아래 표에 바로 입력·수정할 수 있습니다.';
+        '💡 필기체/조명으로 인해 일부 문자를 아래 표에서 확인 후 [✅ 이미지 스케줄 확정 반영]을 눌러주세요.';
     }
   } catch (err) {
     schedOcrStatusText.textContent =
-      '💡 오프라인 상태입니다. 등록된 위 스케줄 사진을 보면서 아래 표에서 바로 확인·수정 후 반영해 주세요.';
+      '💡 오프라인 상태입니다. 등록된 위 스케줄 사진을 보면서 아래 표에서 확인 후 [✅ 이미지 스케줄 확정 반영]을 눌러주세요.';
   }
 }
 
@@ -6217,8 +6816,12 @@ function openScheduleImageModal() {
   }
   schedOcrStatusBox.style.display = 'none';
 
-  // 현재 현황판의 UPS 행들을 기본 편집 행으로 로드
-  const currentUpsRows = flightItems
+  if (schedEquipInput) {
+    schedEquipInput.value = imageEquipSummary || 'DOLLY : 70 · MT : 42 · *SHP - 10';
+  }
+
+  // 이미지 반영 스케줄(imageFlightItems)의 현재 행들을 기본 편집 행으로 로드 (이전 실시간 행과 섞이지 않음)
+  const currentImgRows = imageFlightItems
     .filter((f) => isUpsFlight(f))
     .map((f) => ({
       spot: f.spot || '',
@@ -6230,9 +6833,9 @@ function openScheduleImageModal() {
     }));
 
   draftSchedRows =
-    currentUpsRows.length > 0
-      ? currentUpsRows
-      : INITIAL_FLIGHT_DATA.filter((f) => isUpsFlight(f)).map((f) => ({
+    currentImgRows.length > 0
+      ? currentImgRows
+      : INITIAL_IMAGE_FLIGHT_DATA.map((f) => ({
           spot: f.spot,
           fltNo: f.fltNo,
           aircraft: f.aircraft,
@@ -6272,38 +6875,53 @@ function applyScheduleRowsToBoard(replaceExisting = true) {
     savePinnedScheduleImage(tempSchedImgData);
   }
 
+  if (schedEquipInput && schedEquipInput.value.trim()) {
+    imageEquipSummary = schedEquipInput.value.trim();
+  }
+
   if (validRows.length > 0) {
     const newBoardItems = validRows.map((r, i) => ({
       id: `img-wb-${Date.now()}-${i}`,
       spot: r.spot || '미정',
       fltNo: r.fltNo || '-',
       aircraft: r.aircraft || '748',
-      sta: r.sta || '',
+      sta: formatToBoardTime(r.sta || ''),
       ataSub: '',
-      std: r.std || '',
+      std: formatToBoardTime(r.std || ''),
       atdSub: '',
       originDest: r.originDest || '-',
       airline: '유피에스항공',
-      state: '스케줄이미지 반영',
+      state: '화이트보드 반영',
       memo: '📷 스케줄 이미지 등록본'
     }));
 
     if (replaceExisting) {
-      flightItems = newBoardItems;
+      imageFlightItems = newBoardItems;
     } else {
-      flightItems = [...newBoardItems, ...flightItems];
+      imageFlightItems = [...newBoardItems, ...imageFlightItems];
     }
 
     const now = new Date();
     const hh = String(now.getHours()).padStart(2, '0');
     const mm = String(now.getMinutes()).padStart(2, '0');
-    flightLastSync = `📷 스케줄 이미지 반영 (${hh}:${mm})`;
+    imageFlightLastSync = `📷 스케줄 이미지 반영 (${hh}:${mm})`;
+    currentFlightSource = 'IMAGE';
+
+    // 실시간 스케줄의 당일 기종도 등록된 화이트보드 기종과 자동 동기화
+    liveFlightItems.forEach((lf) => {
+      if (!isUpsFlight(lf)) return;
+      const matched = imageFlightItems.find((im) => im.fltNo === lf.fltNo);
+      if (matched && matched.aircraft) {
+        lf.aircraft = matched.aircraft;
+      }
+    });
+
     saveFlightData();
   }
 
   render();
   scheduleImageModal.classList.remove('open');
-  showToast(`✅ 스케줄 이미지 및 ${validRows.length}개 현황판 행이 반영되었습니다!`);
+  showToast(`✅ [📷 이미지 반영 스케줄]에 ${validRows.length}개 현황판 행이 저장되었습니다! (새로고침 시에도 유지)`);
 }
 
 if (openSchedImgModalBtn) {
@@ -6352,7 +6970,7 @@ if (addSchedRowBtn) {
 
 if (loadDefaultBoardRowsBtn) {
   loadDefaultBoardRowsBtn.addEventListener('click', () => {
-    draftSchedRows = INITIAL_FLIGHT_DATA.filter((f) => isUpsFlight(f)).map((f) => ({
+    draftSchedRows = INITIAL_IMAGE_FLIGHT_DATA.map((f) => ({
       spot: f.spot,
       fltNo: f.fltNo,
       aircraft: f.aircraft,
@@ -6360,8 +6978,11 @@ if (loadDefaultBoardRowsBtn) {
       std: f.std,
       originDest: f.originDest
     }));
+    if (schedEquipInput) {
+      schedEquipInput.value = 'DOLLY : 70 · MT : 42 · *SHP - 10';
+    }
     renderDraftSchedRows();
-    showToast('기본 화이트보드 5개 편이 표에 로드되었습니다.');
+    showToast('최신 화이트보드 5개 편(630, 629, 631)이 표에 로드되었습니다.');
   });
 }
 
@@ -7172,4 +7793,3 @@ render();
 </script>
 </body>
 </html>
-

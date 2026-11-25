@@ -10,7 +10,7 @@
   <title>CPK 3CODE · ULD · 실시간 항공편</title>
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%231e293b'/><text x='50' y='44' font-family='sans-serif' font-size='26' font-weight='bold' fill='%2338bdf8' text-anchor='middle'>CPK</text><text x='50' y='74' font-family='sans-serif' font-size='22' font-weight='bold' fill='%23fbbf24' text-anchor='middle'>5X·ULD</text></svg>" />
   <link rel="manifest" href="./manifest.json" />
-  <link rel="stylesheet" href="./styles.css?v=12" />
+  <link rel="stylesheet" href="./styles.css?v=13" />
 </head>
 <body>
   <div class="app-container">
@@ -97,8 +97,18 @@
       <!-- [모드 2] ULD 현장명칭 / 박스 타입별 필터 탭 (동적 렌더링) -->
       <nav class="uld-type-tabs" id="uldTypeTabs" style="display: none;" aria-label="박스 타입별 필터"></nav>
 
-      <!-- [모드 3] 실시간 항공편 컨트롤 & 출·도착 필터 탭 -->
+      <!-- [모드 3] 실시간 항공편 컨트롤 & 스케줄 모드(실시간 vs 이미지 반영) 선택 & 출·도착 필터 탭 -->
       <div class="flight-controls" id="flightControls" style="display: none;">
+        <!-- 1. 실시간 스케줄 vs 이미지 반영 스케줄 선택 전환 바 -->
+        <div class="flight-source-bar" id="flightSourceBar">
+          <button type="button" class="flight-source-btn active" data-flight-source="LIVE">
+            📡 실시간 스케줄 <span class="src-count" id="srcCount-LIVE">0</span>
+          </button>
+          <button type="button" class="flight-source-btn" data-flight-source="IMAGE">
+            📷 이미지 반영 스케줄 <span class="src-count" id="srcCount-IMAGE">0</span>
+          </button>
+        </div>
+
         <div class="flight-top-row">
           <div class="flight-airline-toggle" id="flightAirlineToggle">
             <button type="button" class="ups-toggle-btn active" data-airline-filter="UPS">
@@ -204,6 +214,15 @@
 
     <!-- 검색 결과 리스트 (목적지 코드 & ULD 컨테이너 & 실시간 항공편 공용 영역) -->
     <main class="results-list" id="resultsList"></main>
+
+    <!-- [모드 3 전용] 화이트보드 하단 DOLLY · MT · *SHP 장비 현황 바 -->
+    <div class="wb-equip-summary-bar" id="wbEquipSummaryBar" style="display: none;" title="클릭하여 DOLLY · MT · *SHP 수량 메모 수정">
+      <div class="wb-equip-left">
+        <span class="wb-equip-badge">🛠️ 현장 장비 현황</span>
+        <span class="wb-equip-text" id="wbEquipSummaryText">DOLLY : 70 · MT : 42 · *SHP - 10</span>
+      </div>
+      <button type="button" class="btn-equip-edit" id="editEquipSummaryBtn">✏️ 수량수정</button>
+    </div>
 
     <!-- 플로팅 액션 버튼 영역 -->
     <div class="fab-group">
@@ -707,10 +726,10 @@
 
       <!-- 2. 추출된 6열 스케줄 검수 및 직접 수정 테이블 -->
       <div class="sched-extract-header">
-        <span class="form-label" style="margin:0;">📋 반영할 현황판 데이터 (사진을 보며 수정·추가 가능)</span>
+        <span class="form-label" style="margin:0;">📋 자동 인식된 현황판 데이터 (사진 선택 시 즉시 자동 반영됨)</span>
         <div class="sched-extract-tools">
           <button type="button" class="btn-mini-tool" id="addSchedRowBtn">＋ 행 추가</button>
-          <button type="button" class="btn-mini-tool" id="loadDefaultBoardRowsBtn">⚡ 기본편 불러오기</button>
+          <button type="button" class="btn-mini-tool" id="loadDefaultBoardRowsBtn">⚡ 최신 화이트보드(5편)</button>
         </div>
       </div>
 
@@ -727,12 +746,24 @@
         <div id="schedExtractRows" class="sched-edit-tbody"></div>
       </div>
 
+      <div class="form-group" style="margin-top: 8px; margin-bottom: 4px;">
+        <label class="form-label" for="schedEquipInput" style="margin-bottom: 3px;">🛠️ 화이트보드 하단 장비 메모 (DOLLY · MT · *SHP)</label>
+        <input
+          type="text"
+          id="schedEquipInput"
+          class="form-input"
+          style="height: 36px; font-size: 0.84rem;"
+          placeholder="예: DOLLY : 70 · MT : 42 · *SHP - 10"
+          value="DOLLY : 70 · MT : 42 · *SHP - 10"
+        />
+      </div>
+
       <!-- 반영 버튼 (기존 교체 vs 기존에 추가) -->
-      <div class="modal-actions" style="margin-top: 14px;">
+      <div class="modal-actions" style="margin-top: 12px;">
         <button type="button" class="btn-save" id="applySchedReplaceBtn" style="background:#16a34a;">
-          ✅ 현황판에 덮어쓰기(반영)
+          ✅ 이미지 스케줄 확정 반영
         </button>
-        <button type="button" class="btn-save" id="applySchedAppendBtn" style="background:#2563eb; flex:0.75;">
+        <button type="button" class="btn-save" id="applySchedAppendBtn" style="background:#2563eb; flex:0.65;">
           ➕ 기존에 추가
         </button>
       </div>
@@ -859,6 +890,6 @@
   <!-- 토스트 알림 -->
   <div class="toast" id="toast"></div>
 
-  <script src="./app.js?v=12"></script>
+  <script src="./app.js?v=13"></script>
 </body>
 </html>

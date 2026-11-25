@@ -598,6 +598,120 @@ body {
   gap: 8px;
 }
 
+/* 실시간 스케줄 vs 이미지 반영 스케줄 선택 전환 바 */
+.flight-source-bar {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  background: rgba(15, 23, 42, 0.55);
+  padding: 4px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+}
+
+.flight-source-btn {
+  background: transparent;
+  border: 1.5px solid transparent;
+  color: #cbd5e1;
+  font-size: 0.81rem;
+  font-weight: 800;
+  padding: 8px 8px;
+  border-radius: 9px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  white-space: nowrap;
+  transition: all 0.15s;
+}
+
+.flight-source-btn .src-count {
+  background: rgba(255, 255, 255, 0.16);
+  color: #e2e8f0;
+  font-size: 0.72rem;
+  font-weight: 900;
+  padding: 1px 6px;
+  border-radius: 99px;
+}
+
+.flight-source-btn.active[data-flight-source="LIVE"] {
+  background: #22c55e;
+  color: #052e16;
+  border-color: #4ade80;
+  box-shadow: 0 2px 8px rgba(34, 197, 94, 0.35);
+}
+
+.flight-source-btn.active[data-flight-source="LIVE"] .src-count {
+  background: rgba(5, 46, 22, 0.2);
+  color: #052e16;
+}
+
+.flight-source-btn.active[data-flight-source="IMAGE"] {
+  background: #38bdf8;
+  color: #0f172a;
+  border-color: #7dd3fc;
+  box-shadow: 0 2px 8px rgba(56, 189, 248, 0.38);
+}
+
+.flight-source-btn.active[data-flight-source="IMAGE"] .src-count {
+  background: rgba(15, 23, 42, 0.18);
+  color: #0f172a;
+}
+
+/* 화이트보드 하단 DOLLY · MT · *SHP 장비 현황 바 */
+.wb-equip-summary-bar {
+  margin: 10px 12px 4px;
+  background: #ffffff;
+  border: 1.5px solid #2e7d5b;
+  border-left: 5px solid #2e7d5b;
+  border-radius: 12px;
+  padding: 10px 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  box-shadow: var(--shadow-sm);
+  cursor: pointer;
+}
+
+.wb-equip-left {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.wb-equip-badge {
+  background: #ecfdf5;
+  border: 1px solid #a7f3d0;
+  color: #065f46;
+  font-size: 0.75rem;
+  font-weight: 800;
+  padding: 3px 8px;
+  border-radius: 7px;
+}
+
+.wb-equip-text {
+  font-family: "SF Mono", "Roboto Mono", Consolas, monospace;
+  font-size: 0.92rem;
+  font-weight: 900;
+  color: #0f172a;
+  letter-spacing: 0.02em;
+}
+
+.btn-equip-edit {
+  background: #f1f5f9;
+  border: 1px solid #cbd5e1;
+  color: #334155;
+  border-radius: 7px;
+  padding: 5px 9px;
+  font-size: 0.74rem;
+  font-weight: 800;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
 .flight-top-row {
   display: flex;
   align-items: center;
