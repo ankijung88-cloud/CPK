@@ -2538,6 +2538,80 @@ mark.hl {
   gap: 8px;
 }
 
+.staff-autosave-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  background: rgba(15, 23, 42, 0.5);
+  border: 1px solid rgba(56, 189, 248, 0.32);
+  border-radius: 10px;
+  padding: 6px 10px;
+  flex-wrap: wrap;
+}
+
+.staff-autosave-badge {
+  color: #4ade80;
+  font-size: 0.75rem;
+  font-weight: 800;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.staff-autosave-sub {
+  color: #cbd5e1;
+  font-size: 0.71rem;
+  font-weight: 600;
+}
+
+.staff-modal-autosave-tip {
+  background: #f0fdf4;
+  border: 1px solid #86efac;
+  color: #166534;
+  font-size: 0.76rem;
+  font-weight: 700;
+  padding: 7px 10px;
+  border-radius: 9px;
+  margin-bottom: 12px;
+}
+
+.staff-inline-phone-wrap {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  flex: 1;
+  min-width: 0;
+}
+
+.staff-inline-phone-input {
+  width: 142px;
+  max-width: 100%;
+  height: 32px;
+  padding: 0 8px;
+  border: 1.5px solid #93c5fd;
+  border-radius: 8px;
+  background: #eff6ff;
+  color: #1e3a8a;
+  font-family: "SF Mono", "Roboto Mono", Consolas, monospace;
+  font-size: 0.84rem;
+  font-weight: 800;
+  outline: none;
+  transition: border-color 0.15s, background-color 0.15s;
+}
+
+.staff-inline-phone-input:focus {
+  background: #ffffff;
+  border-color: #2563eb;
+  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.15);
+}
+
+.staff-inline-phone-input::placeholder {
+  color: #b45309;
+  font-weight: 700;
+  font-size: 0.75rem;
+}
+
 .staff-dept-tabs {
   display: flex;
   flex-wrap: wrap;
@@ -3000,8 +3074,12 @@ mark.hl {
         <nav class="sop-phase-tabs-grid" id="sopPhaseTabs" aria-label="조업 단계별 필터"></nav>
       </div>
 
-      <!-- [모드 5] 사내직원 비상연락망 부서별 · 근무조별 필터 컨트롤 -->
+      <!-- [모드 5] 사내직원 비상연락망 부서별 · 근무조별 필터 컨트롤 & 자동저장 안내 -->
       <div class="staff-controls" id="staffControls" style="display: none;">
+        <div class="staff-autosave-bar">
+          <span class="staff-autosave-badge" id="staffAutosaveBadge">💾 자동저장 ON · 새로고침 시 영구 유지</span>
+          <span class="staff-autosave-sub" id="staffAutosaveTime">연락처·사진·이름 입력 즉시 자동 저장됨</span>
+        </div>
         <nav class="staff-dept-tabs" id="staffDeptTabs" aria-label="부서별 필터"></nav>
       </div>
     </header>
@@ -3724,6 +3802,9 @@ mark.hl {
       <div class="modal-header">
         <h2 class="modal-title" id="staffModalTitle">📞 사내직원 비상연락망 등록/수정</h2>
         <button type="button" class="modal-close" id="closeStaffModalBtn" aria-label="닫기">✕</button>
+      </div>
+      <div class="staff-modal-autosave-tip" id="staffModalAutosaveTip">
+        💾 입력·수정한 이름, 연락처, 촬영 사진은 <strong>즉시 자동 저장</strong>되어 새로고침해도 유지됩니다.
       </div>
 
       <form id="staffForm">
@@ -5682,9 +5763,14 @@ async function syncLiveIcnFlights(silent = false) {
   }
 }
 
-// 모드 전환 (CODE <-> ULD <-> FLIGHT <-> SOP)
+// 모드 전환 (CODE <-> ULD <-> FLIGHT <-> SOP <-> STAFF) 및 현재 탭 위치 자동 저장
+const ACTIVE_APP_MODE_KEY = 'cpk_active_app_mode_v1';
+
 function switchMode(newMode) {
   appMode = newMode;
+  try {
+    localStorage.setItem(ACTIVE_APP_MODE_KEY, newMode);
+  } catch (e) {}
   modeSwitch.querySelectorAll('.mode-btn').forEach((btn) => {
     btn.classList.toggle('active', btn.dataset.mode === newMode);
   });
@@ -8252,6 +8338,9 @@ resultsList.addEventListener('click', (e) => {
 // [모드 5] 사내직원 비상연락망 (사진 · 이름 · 직급 · 부서 · 연락처 CRUD 엔진)
 // ==========================================
 const STAFF_STORAGE_KEY = 'cpk_staff_contacts_v1';
+const STAFF_DRAFT_STORAGE_KEY = 'cpk_staff_draft_v1';
+const STAFF_ACTIVE_DEPT_KEY = 'cpk_staff_active_dept_v1';
+const STAFF_LAST_SAVED_KEY = 'cpk_staff_last_saved_v1';
 
 const INITIAL_STAFF_DATA = [
     {
@@ -8744,8 +8833,12 @@ let staffItems = [];
 let currentStaffDept = 'ALL';
 let editingStaffId = null;
 let currentStaffPhotoData = '';
+let staffLastSavedTime = '';
 
 const staffDeptTabs = document.getElementById('staffDeptTabs');
+const staffAutosaveBadge = document.getElementById('staffAutosaveBadge');
+const staffAutosaveTime = document.getElementById('staffAutosaveTime');
+const staffModalAutosaveTip = document.getElementById('staffModalAutosaveTip');
 const staffModal = document.getElementById('staffModal');
 const staffModalTitle = document.getElementById('staffModalTitle');
 const closeStaffModalBtn = document.getElementById('closeStaffModalBtn');
@@ -8764,13 +8857,43 @@ const staffJoinInput = document.getElementById('staffJoinInput');
 const staffMemoInput = document.getElementById('staffMemoInput');
 const deleteStaffBtn = document.getElementById('deleteStaffBtn');
 
+function updateStaffAutosaveIndicator(label = '') {
+  if (label) {
+    staffLastSavedTime = label;
+    try {
+      localStorage.setItem(STAFF_LAST_SAVED_KEY, staffLastSavedTime);
+    } catch (e) {}
+  }
+  if (staffAutosaveTime) {
+    staffAutosaveTime.textContent = staffLastSavedTime
+      ? `최근 자동저장: ${staffLastSavedTime}`
+      : '연락처·사진·이름 입력 즉시 자동 저장됨';
+  }
+}
+
+function getNowTimeStr() {
+  const now = new Date();
+  const hh = String(now.getHours()).padStart(2, '0');
+  const mm = String(now.getMinutes()).padStart(2, '0');
+  const ss = String(now.getSeconds()).padStart(2, '0');
+  return `${hh}:${mm}:${ss}`;
+}
+
 function loadStaffData() {
   try {
+    const savedDept = localStorage.getItem(STAFF_ACTIVE_DEPT_KEY);
+    if (savedDept) currentStaffDept = savedDept;
+    staffLastSavedTime = localStorage.getItem(STAFF_LAST_SAVED_KEY) || '';
+
     const raw = localStorage.getItem(STAFF_STORAGE_KEY);
     if (raw) {
       const parsed = JSON.parse(raw);
       if (Array.isArray(parsed) && parsed.length > 0) {
-        staffItems = parsed;
+        // 기존 저장된 데이터(추가 입력한 연락처, 촬영 사진, 신규 직원 등)를 100% 보존하면서 누락된 초기 명단이 있으면 병합
+        const existingIds = new Set(parsed.map((it) => it.id));
+        const missingDefaults = INITIAL_STAFF_DATA.filter((d) => !existingIds.has(d.id));
+        staffItems = missingDefaults.length > 0 ? [...parsed, ...missingDefaults] : parsed;
+        updateStaffAutosaveIndicator();
         return;
       }
     }
@@ -8778,14 +8901,79 @@ function loadStaffData() {
     console.error('Failed to read Staff localStorage:', e);
   }
   staffItems = JSON.parse(JSON.stringify(INITIAL_STAFF_DATA));
-  saveStaffData();
+  saveStaffData(true);
 }
 
-function saveStaffData() {
+function saveStaffData(silentIndicator = false) {
   try {
     localStorage.setItem(STAFF_STORAGE_KEY, JSON.stringify(staffItems));
+    localStorage.setItem(STAFF_ACTIVE_DEPT_KEY, currentStaffDept);
+    if (!silentIndicator) {
+      updateStaffAutosaveIndicator(`${getNowTimeStr()} 자동저장 완료`);
+    } else {
+      updateStaffAutosaveIndicator();
+    }
   } catch (e) {
     showToast('저장 공간이 부족합니다. 일부 고해상도 사진을 정리해 주세요.');
+  }
+}
+
+// 모달 입력 중이거나 직원 정보 수정 중일 때 타이핑할 때마다 실시간 자동 저장 (저장 버튼을 안 누르고 새로고침해도 유지!)
+function autoSaveStaffFormInProgress() {
+  if (!staffModal || !staffModal.classList.contains('open')) return;
+  const name = (staffNameInput?.value || '').trim();
+  const role = (staffRoleInput?.value || '').trim();
+  const rawPhone = (staffPhoneInput?.value || '').trim();
+  const phone = rawPhone.replace(/[^0-9]/g, '').length >= 9 ? formatPhoneNumber(rawPhone) : rawPhone;
+  const dept = staffDeptSelect?.value || '조업';
+  const shift = (staffShiftInput?.value || '').trim().toUpperCase();
+  const joinDate = (staffJoinInput?.value || '').trim();
+  const memo = (staffMemoInput?.value || '').trim();
+
+  if (editingStaffId) {
+    // 기존 직원 수정 중이거나 신규 직원이 자동 생성된 상태라면 즉시 staffItems 배열에 반영 및 localStorage 영구 저장
+    const idx = staffItems.findIndex((it) => it.id === editingStaffId);
+    if (idx !== -1) {
+      staffItems[idx] = {
+        ...staffItems[idx],
+        name: name || staffItems[idx].name,
+        role,
+        phone,
+        dept,
+        shift,
+        joinDate,
+        memo,
+        photo: currentStaffPhotoData
+      };
+      saveStaffData(false);
+      if (staffModalAutosaveTip) {
+        staffModalAutosaveTip.innerHTML = `✅ <strong>${getNowTimeStr()} 자동 저장됨</strong> — 지금 새로고침해도 입력한 내용이 그대로 유지됩니다.`;
+      }
+      return;
+    }
+  }
+
+  // 신규 직원 추가 모달에서 이름이 1글자 이상 입력되거나 사진/연락처가 입력되면 즉시 새 항목으로 자동 등록하여 유실 방지
+  if (!editingStaffId && (name.length >= 1 || phone.length >= 3 || currentStaffPhotoData)) {
+    const newId = 'staff-custom-' + Date.now();
+    editingStaffId = newId;
+    const newStaff = {
+      id: newId,
+      name: name || '신규직원(작성중)',
+      role: role || '사원',
+      phone,
+      dept,
+      shift,
+      joinDate,
+      memo,
+      photo: currentStaffPhotoData
+    };
+    staffItems.unshift(newStaff);
+    if (deleteStaffBtn) deleteStaffBtn.style.display = 'inline-block';
+    saveStaffData(false);
+    if (staffModalAutosaveTip) {
+      staffModalAutosaveTip.innerHTML = `✅ <strong>${getNowTimeStr()} 신규 직원 자동 저장됨</strong> — 새로고침해도 사라지지 않습니다.`;
+    }
   }
 }
 
@@ -8884,6 +9072,7 @@ function renderStaffDeptTabs() {
 
 function renderStaffMode() {
   renderStaffDeptTabs();
+  updateStaffAutosaveIndicator();
 
   const filtered = staffItems.filter((item) => {
     const deptOk = currentStaffDept === 'ALL' || item.dept === currentStaffDept;
@@ -8892,7 +9081,7 @@ function renderStaffMode() {
 
   const deptLabel = currentStaffDept === 'ALL' ? '사내 비상연락망 전체' : currentStaffDept + ' 파트';
   statusText.textContent = deptLabel + ' · ' + filtered.length + '명';
-  statusHint.textContent = '카드 터치 시 사진·이름·연락처 수정 · 사진 터치 시 확대';
+  statusHint.textContent = '연락처 입력 시 즉시 자동저장 · 카드 터치 시 상세 수정';
 
   if (filtered.length === 0) {
     const safeQuery = searchQuery.trim();
@@ -8915,13 +9104,19 @@ function renderStaffMode() {
         : '<div class="staff-avatar-wrap"><div class="staff-avatar-empty"><span class="icon">👤</span><span>미등록</span></div></div>';
 
       const cleanTel = (item.phone || '').replace(/[^0-9+]/g, '');
-      const phoneDisplayHtml = item.phone && item.phone.trim()
-        ? '<span class="staff-phone-num">📱 ' + highlightText(item.phone, searchQuery) + '</span>'
-        : '<span class="staff-phone-empty">＋ 연락처 입력 (터치)</span>';
+      const safePhoneVal = (item.phone || '').replace(/"/g, '&quot;');
 
-      const callButtonsHtml = cleanTel
-        ? '<div class="staff-call-actions"><a href="tel:' + cleanTel + '" class="btn-staff-call" data-ext-link="true" title="전화 걸기">📞 통화</a><a href="sms:' + cleanTel + '" class="btn-staff-sms" data-ext-link="true" title="문자 보내기">💬 문자</a></div>'
-        : '';
+      // 목록 카드에서 바로 연락처를 타이핑할 수 있는 인라인 자동저장 입력창 제공
+      const phoneInlineInputHtml =
+        '<div class="staff-inline-phone-wrap" data-inline-phone-wrap="true">' +
+          '<input type="tel" class="staff-inline-phone-input" data-staff-inline-phone="' + item.id + '" value="' + safePhoneVal + '" placeholder="📱 연락처 바로입력" aria-label="' + (item.name || '') + ' 연락처 입력" />' +
+        '</div>';
+
+      const callButtonsHtml =
+        '<div class="staff-call-actions" data-staff-call-box="' + item.id + '" style="' + (cleanTel ? 'display:flex;' : 'display:none;') + '">' +
+          '<a href="tel:' + cleanTel + '" class="btn-staff-call" data-ext-link="true" data-call-link="' + item.id + '" title="전화 걸기">📞 통화</a>' +
+          '<a href="sms:' + cleanTel + '" class="btn-staff-sms" data-ext-link="true" data-sms-link="' + item.id + '" title="문자 보내기">💬 문자</a>' +
+        '</div>';
 
       const metaParts = [];
       if (item.joinDate) metaParts.push('입사일: ' + highlightText(item.joinDate, searchQuery));
@@ -8947,7 +9142,7 @@ function renderStaffMode() {
           '</div>' +
           metaRowHtml +
           '<div class="staff-phone-row">' +
-            phoneDisplayHtml +
+            phoneInlineInputHtml +
             callButtonsHtml +
           '</div>' +
         '</div>' +
@@ -9023,15 +9218,39 @@ function openStaffModalForEdit(id) {
 }
 
 function closeStaffModal() {
+  if (staffModal && staffModal.classList.contains('open')) {
+    autoSaveStaffFormInProgress();
+    render();
+  }
   if (staffModal) staffModal.classList.remove('open');
   editingStaffId = null;
 }
+
+// 모달 내 모든 입력창(이름·직급·연락처·부서·근무조·입사일·메모) 타이핑 즉시 실시간 자동저장 바인딩
+[
+  staffNameInput,
+  staffRoleInput,
+  staffPhoneInput,
+  staffDeptSelect,
+  staffShiftInput,
+  staffJoinInput,
+  staffMemoInput
+].forEach((inputEl) => {
+  if (!inputEl) return;
+  inputEl.addEventListener('input', () => {
+    autoSaveStaffFormInProgress();
+  });
+  inputEl.addEventListener('change', () => {
+    autoSaveStaffFormInProgress();
+  });
+});
 
 if (staffDeptTabs) {
   staffDeptTabs.addEventListener('click', (e) => {
     const btn = e.target.closest('.tab-btn');
     if (!btn) return;
     currentStaffDept = btn.dataset.staffDept;
+    saveStaffData(true);
     render();
   });
 }
@@ -9052,6 +9271,7 @@ if (staffCameraInput) {
     if (file) {
       const dataUrl = await compressImageFile(file);
       updateStaffPhotoPreview(dataUrl);
+      autoSaveStaffFormInProgress();
     }
     e.target.value = '';
   });
@@ -9063,6 +9283,7 @@ if (staffGalleryInput) {
     if (file) {
       const dataUrl = await compressImageFile(file);
       updateStaffPhotoPreview(dataUrl);
+      autoSaveStaffFormInProgress();
     }
     e.target.value = '';
   });
@@ -9071,6 +9292,7 @@ if (staffGalleryInput) {
 if (removeStaffPhotoBtn) {
   removeStaffPhotoBtn.addEventListener('click', () => {
     updateStaffPhotoPreview('');
+    autoSaveStaffFormInProgress();
   });
 }
 
@@ -9146,10 +9368,64 @@ if (deleteStaffBtn) {
   });
 }
 
+// 목록 카드의 인라인 연락처 입력창에서 번호를 타이핑하는 즉시 실시간 자동저장 & 통화/문자 버튼 활성화
+resultsList.addEventListener('input', (e) => {
+  if (appMode !== 'STAFF') return;
+  const inlineInput = e.target.closest('[data-staff-inline-phone]');
+  if (!inlineInput) return;
+  const staffId = inlineInput.dataset.staffInlinePhone;
+  const target = staffItems.find((it) => it.id === staffId);
+  if (!target) return;
+
+  const rawVal = inlineInput.value;
+  const digits = rawVal.replace(/[^0-9]/g, '');
+  const formatted = digits.length >= 10 ? formatPhoneNumber(rawVal) : rawVal.trim();
+  target.phone = formatted;
+  if (digits.length === 11 && inlineInput.value !== formatted) {
+    inlineInput.value = formatted;
+  }
+  saveStaffData(false);
+
+  // 통화/문자 버튼 즉시 갱신
+  const callBox = resultsList.querySelector(`[data-staff-call-box="${staffId}"]`);
+  const callLink = resultsList.querySelector(`[data-call-link="${staffId}"]`);
+  const smsLink = resultsList.querySelector(`[data-sms-link="${staffId}"]`);
+  if (callBox && callLink && smsLink) {
+    if (digits.length >= 3) {
+      callLink.href = `tel:${digits}`;
+      smsLink.href = `sms:${digits}`;
+      callBox.style.display = 'flex';
+    } else {
+      callBox.style.display = 'none';
+    }
+  }
+});
+
+resultsList.addEventListener('change', (e) => {
+  if (appMode !== 'STAFF') return;
+  const inlineInput = e.target.closest('[data-staff-inline-phone]');
+  if (!inlineInput) return;
+  const staffId = inlineInput.dataset.staffInlinePhone;
+  const target = staffItems.find((it) => it.id === staffId);
+  if (!target) return;
+  const formatted = formatPhoneNumber(inlineInput.value);
+  inlineInput.value = formatted;
+  target.phone = formatted;
+  saveStaffData(false);
+  showToast(`💾 ${target.role ? target.role + ' ' : ''}${target.name} 연락처가 자동 저장되었습니다.`);
+});
+
+// 브라우저 새로고침(F5) 또는 탭 종료 직전 현재 작성 중인 비상연락망 데이터 최종 자동 저장 보장
+window.addEventListener('beforeunload', () => {
+  if (staffModal && staffModal.classList.contains('open')) {
+    autoSaveStaffFormInProgress();
+  }
+});
+
 resultsList.addEventListener('click', (e) => {
   if (appMode !== 'STAFF') return;
 
-  if (e.target.closest('[data-ext-link]')) {
+  if (e.target.closest('[data-ext-link]') || e.target.closest('[data-inline-phone-wrap]')) {
     e.stopPropagation();
     return;
   }
@@ -9182,12 +9458,21 @@ if ('serviceWorker' in navigator) {
   });
 }
 
-// 앱 시작
+// 앱 시작 (새로고침 시에도 마지막으로 보고 있던 탭과 저장된 데이터를 그대로 복원)
 loadData();
 loadSopData();
 loadStaffData();
 loadPinnedScheduleImage();
-render();
+try {
+  const savedAppMode = localStorage.getItem(ACTIVE_APP_MODE_KEY);
+  if (savedAppMode && ['CODE', 'ULD', 'FLIGHT', 'SOP', 'STAFF'].includes(savedAppMode)) {
+    switchMode(savedAppMode);
+  } else {
+    render();
+  }
+} catch (e) {
+  render();
+}
 
 
 </script>

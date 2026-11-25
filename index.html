@@ -10,7 +10,7 @@
   <title>CPK 3CODE · ULD · 실시간 항공편</title>
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%231e293b'/><text x='50' y='44' font-family='sans-serif' font-size='26' font-weight='bold' fill='%2338bdf8' text-anchor='middle'>CPK</text><text x='50' y='74' font-family='sans-serif' font-size='22' font-weight='bold' fill='%23fbbf24' text-anchor='middle'>5X·ULD</text></svg>" />
   <link rel="manifest" href="./manifest.json" />
-  <link rel="stylesheet" href="./styles.css?v=14" />
+  <link rel="stylesheet" href="./styles.css?v=15" />
 </head>
 <body>
   <div class="app-container">
@@ -177,8 +177,12 @@
         <nav class="sop-phase-tabs-grid" id="sopPhaseTabs" aria-label="조업 단계별 필터"></nav>
       </div>
 
-      <!-- [모드 5] 사내직원 비상연락망 부서별 · 근무조별 필터 컨트롤 -->
+      <!-- [모드 5] 사내직원 비상연락망 부서별 · 근무조별 필터 컨트롤 & 자동저장 안내 -->
       <div class="staff-controls" id="staffControls" style="display: none;">
+        <div class="staff-autosave-bar">
+          <span class="staff-autosave-badge" id="staffAutosaveBadge">💾 자동저장 ON · 새로고침 시 영구 유지</span>
+          <span class="staff-autosave-sub" id="staffAutosaveTime">연락처·사진·이름 입력 즉시 자동 저장됨</span>
+        </div>
         <nav class="staff-dept-tabs" id="staffDeptTabs" aria-label="부서별 필터"></nav>
       </div>
     </header>
@@ -902,6 +906,9 @@
         <h2 class="modal-title" id="staffModalTitle">📞 사내직원 비상연락망 등록/수정</h2>
         <button type="button" class="modal-close" id="closeStaffModalBtn" aria-label="닫기">✕</button>
       </div>
+      <div class="staff-modal-autosave-tip" id="staffModalAutosaveTip">
+        💾 입력·수정한 이름, 연락처, 촬영 사진은 <strong>즉시 자동 저장</strong>되어 새로고침해도 유지됩니다.
+      </div>
 
       <form id="staffForm">
         <!-- 1. 직원 사진 촬영 / 앨범 선택 -->
@@ -1025,6 +1032,6 @@
   <!-- 토스트 알림 -->
   <div class="toast" id="toast"></div>
 
-  <script src="./app.js?v=14"></script>
+  <script src="./app.js?v=15"></script>
 </body>
 </html>
