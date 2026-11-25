@@ -4105,29 +4105,30 @@ const INITIAL_ULD_DATA = [
 ];
 
 // 실시간 항공편 (📡 실시간 스케줄 vs 📷 이미지 반영 스케줄 완전 분리 저장 키 — 새로고침 시 절대 덮어씌워지지 않음)
-const FLIGHT_STORAGE_KEY = 'cpk_live_flight_board_v5';
-const FLIGHT_LAST_SYNC_KEY = 'cpk_live_flight_sync_v5';
-const FLIGHT_SYNCED_DATE_KEY = 'cpk_live_synced_date_v5';
+const FLIGHT_STORAGE_KEY = 'cpk_live_flight_board_v6';
+const FLIGHT_LAST_SYNC_KEY = 'cpk_live_flight_sync_v6';
+const FLIGHT_SYNCED_DATE_KEY = 'cpk_live_synced_date_v6';
 const IMAGE_FLIGHT_STORAGE_KEY = 'cpk_image_flight_board_v5';
 const IMAGE_LAST_SYNC_KEY = 'cpk_image_flight_sync_v5';
 const IMAGE_EQUIP_SUMMARY_KEY = 'cpk_image_equip_summary_v5';
 const ACTIVE_FLIGHT_SOURCE_KEY = 'cpk_active_flight_source_v5';
 
-// UPS 편명별 기본 투입 기종 및 실제 UPS 조업 노선(직전 출발지 / 직후 목적지) 매핑 사전
+// 인천공항(ICN)에 도착 및 출발하는 UPS 편명별 표준 운항 기종 및 노선(직전 출발지 / 직후 목적지) 매핑 사전
 const UPS_FLIGHT_PRESETS = {
-  '195': { aircraft: '744', dest: 'CRK' },
-  '196': { aircraft: '744', origin: 'CRK' },
+  '195': { aircraft: '767', dest: 'CRK' },
+  '196': { aircraft: '767', origin: 'CRK' },
   '6011': { aircraft: '744', origin: 'PVG', dest: 'CGN' },
-  '011': { aircraft: '748', origin: 'PVG', dest: 'DEL' },
-  '11': { aircraft: '748', origin: 'PVG', dest: 'DEL' },
+  '011': { aircraft: '744', origin: 'PVG', dest: 'DEL' },
+  '11': { aircraft: '744', origin: 'PVG', dest: 'DEL' },
+  '11A': { aircraft: '744', origin: 'PVG', dest: 'CGN' },
   '35': { aircraft: '748', origin: 'HNL' },
   '035': { aircraft: '748', origin: 'HNL' },
   '37': { aircraft: '748', origin: 'SYD' },
   '037': { aircraft: '748', origin: 'SYD' },
   '33': { aircraft: '748', origin: 'HNL' },
   '033': { aircraft: '748', origin: 'HNL' },
-  '174': { aircraft: '748', origin: 'ANC', dest: 'CGO' },
-  '173': { aircraft: '748', origin: 'CGO' },
+  '174': { aircraft: '767', origin: 'ANC', dest: 'CGO' },
+  '173': { aircraft: '767', origin: 'CGO' },
   '99': { aircraft: '748', origin: 'HNL', dest: 'ANC' },
   '099': { aircraft: '748', origin: 'HNL', dest: 'ANC' },
   '64': { aircraft: '748', origin: 'ANC', dest: 'HKG' },
@@ -4136,6 +4137,46 @@ const UPS_FLIGHT_PRESETS = {
   '026': { aircraft: '748', origin: 'ANC', dest: 'TPE' },
   '58': { aircraft: '748', origin: 'ONT' },
   '058': { aircraft: '748', origin: 'ONT' }
+};
+
+// 인천공항(ICN)에 도착 및 출발하는 타 항공사 화물기 편명·항공사별 투입 기종 매핑 사전
+const ICN_CARGO_AIRLINE_AIRCRAFT_MAP = {
+  '5Y': '744', // 아틀라스항공 (B747-400F / 748)
+  'PO': '748', // 폴라에어카고 (B747-8F)
+  'K4': '744', // 칼리타항공 (B747-400F)
+  'KJ': '744', // 에어제타 / 에어인천 (B747-400F / 738F)
+  'KE': '77F', // 대한항공 화물기 (B777F / B747-8F)
+  'OZ': '744', // 아시아나항공 화물기 (B747-400F)
+  'FX': '77F', // FedEx항공 (B777F / B767-300F)
+  'LH': '77F', // 루프트한자카고 (B777F)
+  'CV': '748', // 카고룩스 (B747-8F)
+  'RU': '748', // 에어브릿지카고 (B747-8F)
+  '7L': '748', // 실크웨이웨스트항공 (B747-8F / 744)
+  'CX': '748', // 캐세이퍼시픽항공 화물기 (B747-8F)
+  'SQ': '744', // 싱가포르항공 카고 (B747-400F)
+  'LD': '33F', // 에어홍콩 (A330F)
+  'NH': '767', // 전일본공수 카고 (B767-300F)
+  'JL': '767', // 일본항공 카고 (B767-300F)
+  'ET': '77F', // 에티오피아항공 카고 (B777F)
+  'M7': '33F', // 마스에어 (A330-200P2F)
+  'MP': '744', // 마틴에어카고 (B747-400F)
+  'KD': '744', // 웨스턴글로벌항공 (B747-400BCF / MD11F)
+  'GG': '744', // 스카이리스카고 (B747-400F)
+  'A7': '33F', // 어썸카고 (A330-200F)
+  'CF': '75F', // 중국우정항공 (B757-200PCF / B737F)
+  'O3': '767', // 순풍항공 (B767-300BCF / B757F)
+  'GI': '738', // 롱하오항공 (B737-800BCF)
+  'I9': '738', // 중국센트럴항공 (B737-800BCF)
+  'JG': '738', // 장쑤징동화물항공 (B737-800BCF)
+  'YG': '75F', // 원통화물항공 (B757-200PCF)
+  'CK': '77F', // 중국화물항공 (B777F)
+  'CZ': '77F', // 중국남방항공 카고 (B777F)
+  'CA': '77F', // 중국국제항공 카고 (B777F)
+  'CI': '744', // 중화항공 카고 (B747-400F / 77F)
+  'BR': '77F', // 에바항공 카고 (B777F)
+  'QR': '77F', // 카타르항공 카고 (B777F)
+  'EK': '77F', // 에미레이트 스카이카고 (B777F)
+  'TK': '77F'  // 터키항공 카고 (B777F)
 };
 
 // CPK 일일 화물 조업 현황 화이트보드(SPOT | FLT/NO | 기종 | STA/ATA | STD/ATD | ORIGIN/DEST) 기준 초기 데이터 (11/25 최신 화이트보드 반영)
@@ -5287,40 +5328,72 @@ function parseAirportKrCargoHtml(htmlString, dirType) {
   return parsed;
 }
 
-// UPS 도착편과 출발편 페어링 기준 실제 투입 기종(767, 744, 748) 판별
-// - 당일 이미지 반영 스케줄(imageFlightItems)에 동일 SPOT·편명의 기종이 등록되어 있으면 현장 화이트보드 기종을 최우선 적용
-// - 196/195 단독 CRK 회전(예: 11/25 631 스팟 196/195)은 B747-400(744), 196/174 또는 173/195 회전은 B767(767)
-// - 11/11은 당일 화이트보드 기준 B747-8F(748) 또는 B747-400(744), 6011/6011은 744
-// - /174, 173/99, 35/99, 37/174, 64/64, 26/26, 58 등은 B747-8F(748)
-function resolveUpsPairAircraft(arrShort, depShort, assignedSpot = '') {
+// 인천공항(ICN) 도착편·출발편 기준 실제 운항 항공기 기종(748, 744, 767, 77F 등) 판별
+// - 실시간 항공스케줄(LIVE)은 이미지 등록 스케줄(IMAGE)과 독립적으로 인천공항 실제 운항 노선·편명 회전 기준의 항공기 기종을 표시합니다.
+// - UPS(5X) 편명 회전 기준:
+//   * 195 또는 196이 포함된 회전(196/195, 196/174, 173/195, 196, 195): B767-300F (767)
+//   * 11 또는 6011이 포함된 회전(11/11, 6011/6011, 11A): B747-400F (744)
+//   * 33, 35, 37, 64, 26, 58, 99 및 33/174, 35/99, 37/174, 173/99, /174 회전: B747-8F (748)
+function resolveUpsPairAircraft(arrShort, depShort) {
   const a = (arrShort || '').trim();
   const d = (depShort || '').trim();
-  const pairKey = a && d ? `${a}/${d}` : d ? `/${d}` : a;
 
-  // 1) 이미지 반영 스케줄(화이트보드)에 등록된 동일 편명 또는 동일 SPOT 기종이 있으면 우선 매칭
-  if (Array.isArray(imageFlightItems) && imageFlightItems.length > 0) {
-    const matchedByFlt = imageFlightItems.find((it) => {
-      const itNo = (it.fltNo || '').trim().toUpperCase();
-      if (itNo === pairKey) return true;
-      if (!a && d && (itNo === d || itNo === `/${d}`)) return true;
-      return false;
-    });
-    if (matchedByFlt && matchedByFlt.aircraft) {
-      return matchedByFlt.aircraft.trim().toUpperCase();
-    }
+  // 1) 196 / 195 편이 연결된 클락(CRK)·정저우(CGO) 회전은 B767-300F (767)
+  if (a === '196' || a === '195' || d === '195' || d === '196') return '767';
+
+  // 2) 11 / 6011 편(푸동·델리·쾰른 노선)은 B747-400F (744)
+  if (a === '11' || a === '011' || a === '6011' || d === '11' || d === '011' || d === '6011' || d === '11A') {
+    return '744';
   }
 
-  // 2) 편명 조합별 표준/당일 투입 기종 판별
-  if (a === '196' && d === '195') return '744';
-  if ((a === '196' && d === '174') || (a === '173' && d === '195')) return '767';
+  // 3) 33, 35, 37, 64, 26, 58, 99 및 173/99, 33/174, /174 회전은 B747-8F (748)
+  if (
+    ['35', '035', '37', '037', '33', '033', '99', '099', '64', '064', '26', '026', '58', '058'].includes(a) ||
+    ['99', '099', '64', '064', '26', '026'].includes(d)
+  ) {
+    return '748';
+  }
   if (!a && d === '174') return '748';
-  if (a === '173' && d === '99') return '748';
-  if (a === '6011' || d === '6011') return '744';
-  if (a === '11' || a === '011' || d === '11' || d === '011' || d === '11A') return '748';
-  if (['35', '37', '33', '99', '64', '26', '58'].includes(a) || ['99', '64', '26'].includes(d)) return '748';
+  if (a === '173' && !d) return '748';
+
   const pA = UPS_FLIGHT_PRESETS[a];
   const pD = UPS_FLIGHT_PRESETS[d];
   return (pA && pA.aircraft) || (pD && pD.aircraft) || '748';
+}
+
+// 인천공항 전체 화물기(타 항공사 포함) 도착/출발 편명·항공사 기준 항공기 기종 판별
+function resolveIcnCargoAircraft(arrItem, depItem) {
+  const sample = arrItem || depItem;
+  if (!sample) return '-';
+  if (isUpsFlight(sample)) {
+    const aShort = arrItem ? shortUpsFltNo(arrItem.flightNo) : '';
+    const dShort = depItem ? shortUpsFltNo(depItem.flightNo) : '';
+    return resolveUpsPairAircraft(aShort, dShort);
+  }
+
+  const fltNo = ((arrItem && arrItem.flightNo) || (depItem && depItem.flightNo) || '').trim().toUpperCase();
+  const airline = ((arrItem && arrItem.airline) || (depItem && depItem.airline) || '').trim();
+  const prefixMatch = fltNo.match(/^([A-Z0-9]{2})/);
+  const prefix = prefixMatch ? prefixMatch[1] : '';
+
+  // 대한항공(KE) 화물기 세부 편명 구분 (82xx/85xx 미주·구주 장거리 748/77F)
+  if (prefix === 'KE') {
+    if (/^KE82\d\d/.test(fltNo) || /^KE5\d\d/.test(fltNo)) return '748';
+    return '77F';
+  }
+  // 아틀라스항공(5Y) 세부 편명 구분
+  if (prefix === '5Y') {
+    if (/^5Y89/.test(fltNo)) return '748';
+    return '744';
+  }
+  if (prefix && ICN_CARGO_AIRLINE_AIRCRAFT_MAP[prefix]) {
+    return ICN_CARGO_AIRLINE_AIRCRAFT_MAP[prefix];
+  }
+  if (airline.includes('폴라') || airline.includes('카고룩스') || airline.includes('실크웨이')) return '748';
+  if (airline.includes('아틀라스') || airline.includes('칼리타') || airline.includes('에어제타') || airline.includes('아시아나')) return '744';
+  if (airline.includes('대한항공') || airline.includes('FedEX') || airline.includes('루프트한자') || airline.includes('에티오피아')) return '77F';
+  if (airline.includes('일본') || airline.includes('순풍')) return '767';
+  return '744';
 }
 
 // UPS 도착편의 실제 직전 출발지(ORIGIN) 3CODE 판별 (UPS 조업 스케줄 기준)
@@ -5501,8 +5574,10 @@ function buildWhiteboardRowsFromLive(arrList, depList) {
       const assignedSpot =
         arr.spot ||
         matchedDep.spot ||
-        (arrShort === '11' || arrShort === '64' ? '629' : arrShort === '196' ? '631' : arrShort === '173' ? '630' : '636');
-      const aircraft = isUps ? resolveUpsPairAircraft(arrShort, depShort, assignedSpot) : '-';
+        (arrShort === '11' || arrShort === '64' ? '629' : arrShort === '196' ? '631' : arrShort === '173' || arrShort === '33' ? '630' : '636');
+      const aircraft = isUps
+        ? resolveUpsPairAircraft(arrShort, depShort)
+        : resolveIcnCargoAircraft(arr, matchedDep);
 
       boardRows.push({
         id: `live-pair-${assignedSpot}-${arrShort}-${depShort}-${aIdx}`,
@@ -5516,10 +5591,14 @@ function buildWhiteboardRowsFromLive(arrList, depList) {
         originDest: `${origCode}/${destCode}`,
         airline: arr.airline,
         state: [arr.state, matchedDep.state].filter(Boolean).join(' · '),
-        memo: `5X${arrShort.padStart(3, '0')}(${origCode}) ➔ 5X${depShort.padStart(3, '0')}(${destCode})`
+        memo: isUps
+          ? `5X${arrShort.padStart(3, '0')}(${origCode}) ➔ 5X${depShort.padStart(3, '0')}(${destCode})`
+          : `${arr.flightNo}(${origCode}) ➔ ${matchedDep.flightNo}(${destCode})`
       });
     } else {
-      const aircraft = isUps ? resolveUpsPairAircraft(arrShort, '', arr.spot) : '-';
+      const aircraft = isUps
+        ? resolveUpsPairAircraft(arrShort, '')
+        : resolveIcnCargoAircraft(arr, null);
       boardRows.push({
         id: `live-arr-${arr.spot || 'nospot'}-${arrShort}-${aIdx}`,
         spot: arr.spot || '',
@@ -5560,7 +5639,9 @@ function buildWhiteboardRowsFromLive(arrList, depList) {
       ? resolveUpsDestCode(dep, depShort)
       : (dep.via ? extract3CodeFromText(dep.via) : extract3CodeFromText(dep.location)) || '';
     const assignedSpot = dep.spot || (depShort === '195' ? '631' : depShort === '174' ? '630' : '');
-    const aircraft = isUps ? resolveUpsPairAircraft('', depShort, assignedSpot) : '-';
+    const aircraft = isUps
+      ? resolveUpsPairAircraft('', depShort)
+      : resolveIcnCargoAircraft(null, dep);
 
     // UPS 화이트보드 표기 규칙: 전일 도착 체류기가 출발할 때 '/174' 및 'ANC/CGO' 형태로 표시
     const displayFltNo = isUps && depShort === '174' ? `/174` : depShort;
@@ -5625,15 +5706,48 @@ const EMBEDDED_UPS_BY_DATE = {
   },
   '20261125': {
     arr: [
-      { dir: 'ARR', flightNo: '5X196', airline: '유피에스항공', actualTime: '08:01', schedTime: '07:55', location: '앵커리지(ANC)', via: '클라크필드', terminal: 'Cargo(S)', spot: '631', state: '도착' },
-      { dir: 'ARR', flightNo: '5X064', airline: '유피에스항공', actualTime: '11:25', schedTime: '11:45', location: '스탠디포드필드(루이스빌)(SDF)', via: '앵커리지', terminal: 'Cargo(S)', spot: '629', state: '도착' },
-      { dir: 'ARR', flightNo: '5X011', airline: '유피에스항공', actualTime: '17:07', schedTime: '08:15', location: '스탠디포드필드(루이스빌)(SDF)', via: '푸동', terminal: 'Cargo(S)', spot: '629', state: '예정' },
-      { dir: 'ARR', flightNo: '5X173', airline: '유피에스항공', actualTime: '19:50', schedTime: '19:50', location: '앵커리지(ANC)', via: '정저우', terminal: 'Cargo(S)', spot: '630', state: '예정' }
+      { dir: 'ARR', flightNo: '5X196', airline: '유피에스항공', actualTime: '08:42', schedTime: '07:55', location: '앵커리지(ANC)', via: '클라크필드', terminal: 'Cargo(S)', spot: '631', state: '도착' },
+      { dir: 'ARR', flightNo: '5X064', airline: '유피에스항공', actualTime: '13:09', schedTime: '11:45', location: '스탠디포드필드(루이스빌)(SDF)', via: '앵커리지', terminal: 'Cargo(S)', spot: '629', state: '도착' },
+      { dir: 'ARR', flightNo: '5X011', airline: '유피에스항공', actualTime: '18:12', schedTime: '08:15', location: '스탠디포드필드(루이스빌)(SDF)', via: '푸동', terminal: 'Cargo(S)', spot: '629', state: '도착' },
+      { dir: 'ARR', flightNo: '5X173', airline: '유피에스항공', actualTime: '19:50', schedTime: '19:50', location: '앵커리지(ANC)', via: '정저우', terminal: 'Cargo(S)', spot: '630', state: '도착' }
     ],
     dep: [
-      { dir: 'DEP', flightNo: '5X174', airline: '유피에스항공', actualTime: '11:46', schedTime: '12:05', location: '앵커리지(ANC)', via: '정저우', terminal: 'Cargo(S)', spot: '630', state: '출발' },
+      { dir: 'DEP', flightNo: '5X174', airline: '유피에스항공', actualTime: '12:41', schedTime: '12:05', location: '앵커리지(ANC)', via: '정저우', terminal: 'Cargo(S)', spot: '630', state: '출발' },
+      { dir: 'DEP', flightNo: '5X064', airline: '유피에스항공', actualTime: '14:42', schedTime: '13:30', location: '앵커리지(ANC)', via: '홍콩', terminal: 'Cargo(S)', spot: '629', state: '출발' },
+      { dir: 'DEP', flightNo: '5X011', airline: '유피에스항공', actualTime: '19:44', schedTime: '09:55', location: '스탠디포드필드(루이스빌)(SDF)', via: '델리', terminal: 'Cargo(S)', spot: '629', state: '출발' },
+      { dir: 'DEP', flightNo: '5X195', airline: '유피에스항공', actualTime: '22:29', schedTime: '21:45', location: '앵커리지(ANC)', via: '클라크필드', terminal: 'Cargo(S)', spot: '631', state: '출발' },
+      { dir: 'DEP', flightNo: '5X099', airline: '유피에스항공', actualTime: '22:37', schedTime: '22:35', location: '앵커리지(ANC)', via: '', terminal: 'Cargo(S)', spot: '630', state: '출발' }
+    ]
+  },
+  '20261126': {
+    arr: [
+      { dir: 'ARR', flightNo: '5X033', airline: '유피에스항공', actualTime: '03:55', schedTime: '03:55', location: '스탠디포드필드(루이스빌)(SDF)', via: '호놀룰루', terminal: 'Cargo(S)', spot: '630', state: '도착' },
+      { dir: 'ARR', flightNo: '5X011', airline: '유피에스항공', actualTime: '08:42', schedTime: '08:15', location: '스탠디포드필드(루이스빌)(SDF)', via: '쾰른', terminal: 'Cargo(S)', spot: '629', state: '지연' },
+      { dir: 'ARR', flightNo: '5X196', airline: '유피에스항공', actualTime: '09:32', schedTime: '07:55', location: '앵커리지(ANC)', via: '도쿄/나리타', terminal: 'Cargo(S)', spot: '631', state: '지연' },
+      { dir: 'ARR', flightNo: '5X064', airline: '유피에스항공', actualTime: '13:09', schedTime: '11:45', location: '스탠디포드필드(루이스빌)(SDF)', via: '앵커리지', terminal: 'Cargo(S)', spot: '629', state: '지연' },
+      { dir: 'ARR', flightNo: '5X173', airline: '유피에스항공', actualTime: '19:50', schedTime: '19:50', location: '앵커리지(ANC)', via: '도쿄/나리타', terminal: 'Cargo(S)', spot: '630', state: '예정' }
+    ],
+    dep: [
+      { dir: 'DEP', flightNo: '5X011', airline: '유피에스항공', actualTime: '10:00', schedTime: '09:55', location: '스탠디포드필드(루이스빌)(SDF)', via: '델리', terminal: 'Cargo(S)', spot: '629', state: '예정' },
+      { dir: 'DEP', flightNo: '5X174', airline: '유피에스항공', actualTime: '12:05', schedTime: '12:05', location: '앵커리지(ANC)', via: '정저우', terminal: 'Cargo(S)', spot: '630', state: '예정' },
       { dir: 'DEP', flightNo: '5X064', airline: '유피에스항공', actualTime: '13:30', schedTime: '13:30', location: '앵커리지(ANC)', via: '홍콩', terminal: 'Cargo(S)', spot: '629', state: '예정' },
-      { dir: 'DEP', flightNo: '5X011', airline: '유피에스항공', actualTime: '18:30', schedTime: '09:55', location: '스탠디포드필드(루이스빌)(SDF)', via: '델리', terminal: 'Cargo(S)', spot: '629', state: '지연' },
+      { dir: 'DEP', flightNo: '5X195', airline: '유피에스항공', actualTime: '21:45', schedTime: '21:45', location: '앵커리지(ANC)', via: '클라크필드', terminal: 'Cargo(S)', spot: '631', state: '예정' },
+      { dir: 'DEP', flightNo: '5X099', airline: '유피에스항공', actualTime: '22:35', schedTime: '22:35', location: '앵커리지(ANC)', via: '', terminal: 'Cargo(S)', spot: '630', state: '예정' }
+    ]
+  },
+  '20261127': {
+    arr: [
+      { dir: 'ARR', flightNo: '5X033', airline: '유피에스항공', actualTime: '03:55', schedTime: '03:55', location: '스탠디포드필드(루이스빌)(SDF)', via: '호놀룰루', terminal: 'Cargo(S)', spot: '630', state: '예정' },
+      { dir: 'ARR', flightNo: '5X196', airline: '유피에스항공', actualTime: '07:55', schedTime: '07:55', location: '앵커리지(ANC)', via: '도쿄/나리타', terminal: 'Cargo(S)', spot: '631', state: '예정' },
+      { dir: 'ARR', flightNo: '5X011', airline: '유피에스항공', actualTime: '08:15', schedTime: '08:15', location: '스탠디포드필드(루이스빌)(SDF)', via: '쾰른', terminal: 'Cargo(S)', spot: '629', state: '예정' },
+      { dir: 'ARR', flightNo: '5X064', airline: '유피에스항공', actualTime: '11:45', schedTime: '11:45', location: '스탠디포드필드(루이스빌)(SDF)', via: '앵커리지', terminal: 'Cargo(S)', spot: '629', state: '예정' },
+      { dir: 'ARR', flightNo: '5X058', airline: '유피에스항공', actualTime: '15:05', schedTime: '15:05', location: '앵커리지(ANC)', via: '온타리오', terminal: 'Cargo(S)', spot: '636', state: '예정' },
+      { dir: 'ARR', flightNo: '5X173', airline: '유피에스항공', actualTime: '19:50', schedTime: '19:50', location: '앵커리지(ANC)', via: '도쿄/나리타', terminal: 'Cargo(S)', spot: '630', state: '예정' }
+    ],
+    dep: [
+      { dir: 'DEP', flightNo: '5X011', airline: '유피에스항공', actualTime: '09:55', schedTime: '09:55', location: '스탠디포드필드(루이스빌)(SDF)', via: '델리', terminal: 'Cargo(S)', spot: '629', state: '예정' },
+      { dir: 'DEP', flightNo: '5X174', airline: '유피에스항공', actualTime: '12:05', schedTime: '12:05', location: '앵커리지(ANC)', via: '정저우', terminal: 'Cargo(S)', spot: '630', state: '예정' },
+      { dir: 'DEP', flightNo: '5X064', airline: '유피에스항공', actualTime: '13:30', schedTime: '13:30', location: '앵커리지(ANC)', via: '홍콩', terminal: 'Cargo(S)', spot: '629', state: '예정' },
       { dir: 'DEP', flightNo: '5X195', airline: '유피에스항공', actualTime: '21:45', schedTime: '21:45', location: '앵커리지(ANC)', via: '클라크필드', terminal: 'Cargo(S)', spot: '631', state: '예정' },
       { dir: 'DEP', flightNo: '5X099', airline: '유피에스항공', actualTime: '22:35', schedTime: '22:35', location: '앵커리지(ANC)', via: '', terminal: 'Cargo(S)', spot: '630', state: '예정' }
     ]
@@ -7268,16 +7382,6 @@ function autoCommitRecognizedImageSchedule(rowsToCommit, equipText = '', imageDa
   imageFlightLastSync = `📷 ${sourceLabel} (${hh}:${mm})`;
   currentFlightSource = 'IMAGE';
   saveFlightData();
-
-  // 실시간 스케줄의 당일 기종도 등록된 화이트보드 기종과 자동 동기화
-  liveFlightItems.forEach((lf) => {
-    if (!isUpsFlight(lf)) return;
-    const matched = imageFlightItems.find((im) => im.fltNo === lf.fltNo);
-    if (matched && matched.aircraft) {
-      lf.aircraft = matched.aircraft;
-    }
-  });
-  saveFlightData();
   render();
 }
 
@@ -7463,15 +7567,6 @@ function applyScheduleRowsToBoard(replaceExisting = true) {
     const mm = String(now.getMinutes()).padStart(2, '0');
     imageFlightLastSync = `📷 스케줄 이미지 반영 (${hh}:${mm})`;
     currentFlightSource = 'IMAGE';
-
-    // 실시간 스케줄의 당일 기종도 등록된 화이트보드 기종과 자동 동기화
-    liveFlightItems.forEach((lf) => {
-      if (!isUpsFlight(lf)) return;
-      const matched = imageFlightItems.find((im) => im.fltNo === lf.fltNo);
-      if (matched && matched.aircraft) {
-        lf.aircraft = matched.aircraft;
-      }
-    });
 
     saveFlightData();
   }
