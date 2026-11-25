@@ -10,7 +10,7 @@
   <title>CPK 3CODE · ULD · 실시간 항공편</title>
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%231e293b'/><text x='50' y='44' font-family='sans-serif' font-size='26' font-weight='bold' fill='%2338bdf8' text-anchor='middle'>CPK</text><text x='50' y='74' font-family='sans-serif' font-size='22' font-weight='bold' fill='%23fbbf24' text-anchor='middle'>5X·ULD</text></svg>" />
   <link rel="manifest" href="./manifest.json" />
-  <link rel="stylesheet" href="./styles.css?v=13" />
+  <link rel="stylesheet" href="./styles.css?v=14" />
 </head>
 <body>
   <div class="app-container">
@@ -45,8 +45,8 @@
         </div>
       </div>
 
-      <!-- 메인 모드 전환 탭 (4개 탭: 목적지 코드 / ULD 장비 / 실시간 항공편 / 조업 절차서) -->
-      <div class="mode-switch mode-switch-4" id="modeSwitch">
+      <!-- 메인 모드 전환 탭 (5개 탭: 목적지 코드 / ULD 장비 / 실시간 항공편 / 조업 절차서 / 비상연락망) -->
+      <div class="mode-switch mode-switch-5" id="modeSwitch">
         <button type="button" class="mode-btn active" data-mode="CODE">
           ✈️ 목적지코드
         </button>
@@ -58,6 +58,9 @@
         </button>
         <button type="button" class="mode-btn" data-mode="SOP">
           📋 조업절차서
+        </button>
+        <button type="button" class="mode-btn" data-mode="STAFF">
+          📞 비상연락망
         </button>
       </div>
 
@@ -172,6 +175,11 @@
           </button>
         </div>
         <nav class="sop-phase-tabs-grid" id="sopPhaseTabs" aria-label="조업 단계별 필터"></nav>
+      </div>
+
+      <!-- [모드 5] 사내직원 비상연락망 부서별 · 근무조별 필터 컨트롤 -->
+      <div class="staff-controls" id="staffControls" style="display: none;">
+        <nav class="staff-dept-tabs" id="staffDeptTabs" aria-label="부서별 필터"></nav>
       </div>
     </header>
 
@@ -887,9 +895,136 @@
     </div>
   </div>
 
+  <!-- [모달 9] 사내직원 비상연락망 (사진 촬영 · 이름 · 직급 · 부서 · 연락처 CRUD) 모달 -->
+  <div class="modal-backdrop" id="staffModal" role="dialog" aria-modal="true" aria-labelledby="staffModalTitle">
+    <div class="modal-sheet modal-sheet-scroll">
+      <div class="modal-header">
+        <h2 class="modal-title" id="staffModalTitle">📞 사내직원 비상연락망 등록/수정</h2>
+        <button type="button" class="modal-close" id="closeStaffModalBtn" aria-label="닫기">✕</button>
+      </div>
+
+      <form id="staffForm">
+        <!-- 1. 직원 사진 촬영 / 앨범 선택 -->
+        <div class="form-group">
+          <label class="form-label">직원 사진 이미지 (촬영한 이미지 또는 앨범 선택)</label>
+          <div class="staff-photo-modal-row">
+            <div class="staff-photo-upload-box" id="staffPhotoUploadBox">
+              <img id="staffPhotoPreview" class="staff-photo-preview" alt="직원 사진 미리보기" style="display: none;" />
+              <div id="staffPhotoPlaceholder" class="photo-placeholder">
+                <div class="photo-placeholder-icon">👤</div>
+                <div class="photo-placeholder-text">사진 촬영/선택</div>
+              </div>
+            </div>
+            <div class="staff-photo-btn-col">
+              <label class="btn-photo-action" style="background:#eff6ff; border-color:#93c5fd; color:#1d4ed8;">
+                📷 카메라로 직원 촬영
+                <input type="file" id="staffCameraInput" accept="image/*" capture="environment" style="display: none;" />
+              </label>
+              <label class="btn-photo-action">
+                🖼️ 앨범에서 사진 선택
+                <input type="file" id="staffGalleryInput" accept="image/*" style="display: none;" />
+              </label>
+              <button type="button" class="btn-photo-remove" id="removeStaffPhotoBtn" style="display: none;">
+                사진 삭제
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- 2. 이름 & 직급 -->
+        <div class="form-row" style="grid-template-columns: 1.2fr 1fr;">
+          <div class="form-group">
+            <label class="form-label" for="staffNameInput">
+              이름 <span class="label-highlight">(필수)</span>
+            </label>
+            <input
+              type="text"
+              id="staffNameInput"
+              class="form-input input-highlight"
+              placeholder="예: 홍길동"
+              required
+            />
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="staffRoleInput">직급 / 직책</label>
+            <input
+              type="text"
+              id="staffRoleInput"
+              class="form-input"
+              placeholder="예: 사원, 대리, 과장, 차장, 부장"
+            />
+          </div>
+        </div>
+
+        <!-- 3. 연락처 (전화걸기 / 문자 연동) -->
+        <div class="form-group">
+          <label class="form-label" for="staffPhoneInput">
+            📱 연락처 / 휴대폰 번호 <span class="label-highlight">(터치 시 즉시 통화·문자 연결)</span>
+          </label>
+          <input
+            type="tel"
+            id="staffPhoneInput"
+            class="form-input input-highlight"
+            placeholder="예: 010-1234-5678"
+          />
+        </div>
+
+        <!-- 4. 담당 부서 & 근무시간(조) & 입사일 -->
+        <div class="form-row" style="grid-template-columns: 1.15fr 0.85fr 1.1fr;">
+          <div class="form-group">
+            <label class="form-label" for="staffDeptSelect">담당 파트 (부서)</label>
+            <select id="staffDeptSelect" class="form-input">
+              <option value="검수">검수</option>
+              <option value="TUG-CAR">TUG-CAR</option>
+              <option value="조업">조업</option>
+              <option value="FORK">FORK</option>
+              <option value="창고운영">창고운영</option>
+              <option value="교통/안전">교통/안전</option>
+              <option value="기타">기타</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="staffShiftInput">근무시간(조)</label>
+            <input
+              type="text"
+              id="staffShiftInput"
+              class="form-input uppercase"
+              placeholder="예: A6, A8, P3"
+            />
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="staffJoinInput">입사일 (선택)</label>
+            <input
+              type="text"
+              id="staffJoinInput"
+              class="form-input"
+              placeholder="예: 2025.11.02"
+            />
+          </div>
+        </div>
+
+        <!-- 5. 담당 업무 / 비상연락 메모 -->
+        <div class="form-group">
+          <label class="form-label" for="staffMemoInput">담당 업무 / 비상연락 메모 (선택)</label>
+          <input
+            type="text"
+            id="staffMemoInput"
+            class="form-input"
+            placeholder="예: 리바우리 딜리버리 / 비상시 직통 연락"
+          />
+        </div>
+
+        <div class="modal-actions">
+          <button type="button" class="btn-delete" id="deleteStaffBtn" style="display: none;">직원 삭제</button>
+          <button type="submit" class="btn-save">비상연락망에 저장하기</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <!-- 토스트 알림 -->
   <div class="toast" id="toast"></div>
 
-  <script src="./app.js?v=13"></script>
+  <script src="./app.js?v=14"></script>
 </body>
 </html>
